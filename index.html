@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>도기탐정 '포우리' : 태양풍 방어 대작전</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Design Tokens from Master Blueprint */
+            --primary: #00F2FE;
+            --secondary: #FFD700;
+            --danger: #FF4757;
+            --background: #050510;
+            --card-bg: rgba(15, 15, 35, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #E0E0F5;
+            --text-dim: #9494B8;
+            --glow: 0 0 15px rgba(0, 242, 254, 0.4);
+            --header-font: 'Orbitron', sans-serif;
+            --body-font: 'Noto Sans KR', sans-serif;
+        }
+
+        /* Base & Resets */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            font-family: var(--body-font);
+            overflow: hidden;
+            width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #app-container {
+            width: 100%; max-width: 480px; height: 100%;
+            position: relative;
+            background: radial-gradient(circle at top, #101030 0%, #050510 100%);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+            display: flex; flex-direction: column;
+            border-left: 1px solid var(--glass-border);
+            border-right: 1px solid var(--glass-border);
+        }
+
+        /* HUD: Top Navigation */
+        #hud-top {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 16px 20px;
+            background: rgba(5, 5, 20, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 2000;
+            display: none; /* Initially hidden */
+        }
+        .hud-stat { font-family: var(--header-font); font-size: 13px; color: var(--primary); text-shadow: var(--glow); font-weight: 700; }
+        .hud-timer { font-family: var(--header-font); font-size: 13px; color: var(--secondary); letter-spacing: 1px; }
+
+        .hud-progress-container {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(255,255,255,0.05);
+        }
+        .hud-progress-fill { height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.6s ease; }
+
+        /* Screen Management */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            opacity: 0; transition: opacity 0.5s ease;
+            overflow: hidden;
+        }
+        .screen.active { display: flex; opacity: 1; z-index: 1000; }
+
+        /* Common Layouts */
+        .bg-view { width: 100%; height: 45%; background-size: cover; background-position: center; flex-shrink: 0; position: relative; }
+        .bg-view::before {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 30%;
+            background: linear-gradient(to top, var(--background), transparent);
+        }
+
+        .scroll-content { flex: 1; padding: 25px 20px 40px; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* Components */
+        .btn-glow {
+            background: linear-gradient(135deg, var(--primary), #4facfe);
+            border: none; padding: 18px; border-radius: 12px;
+            color: #050510; font-family: var(--header-font); font-weight: 900; font-size: 15px;
+            text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 8px 15px rgba(0, 242, 254, 0.2);
+            letter-spacing: 1px;
+        }
+        .btn-glow:active { transform: scale(0.96); box-shadow: 0 4px 8px rgba(0, 242, 254, 0.4); }
+
+        .card { 
+            background: var(--card-bg); border: 1px solid var(--glass-border); 
+            border-radius: 20px; padding: 18px; margin-bottom: 20px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .dogi-speech { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 20px; }
+        .dogi-avatar { 
+            width: 48px; height: 48px; border-radius: 50%; 
+            background: linear-gradient(135deg, var(--secondary), #FFA500);
+            display: flex; align-items: center; justify-content: center; font-size: 26px; border: 2px solid var(--glass-border);
+        }
+        .speech-bubble { 
+            flex: 1; padding: 14px 16px; background: rgba(255,255,255,0.06); 
+            border: 1px solid var(--glass-border); border-radius: 18px; border-top-left-radius: 4px;
+            font-size: 14px; line-height: 1.6; color: var(--text-main);
+        }
+
+        .question-card { margin-top: 10px; }
+        .question-title { font-size: 18px; font-weight: 900; margin-bottom: 25px; color: #FFF; line-height: 1.4; }
+
+        /* Inputs */
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); padding: 16px;
+            border-radius: 12px; color: var(--text-main); text-align: left; font-size: 15px;
+            cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .option-btn:active { background: rgba(255,255,255,0.1); }
+        .option-btn.correct { background: #00E676; border-color: #00E676; color: #000; font-weight: 700; }
+        .option-btn.wrong { background: var(--danger); border-color: var(--danger); }
+
+        .text-input-group { display: flex; flex-direction: column; gap: 12px; }
+        .modern-input {
+            background: rgba(255,255,255,0.07); border: 2px solid var(--glass-border);
+            padding: 16px; border-radius: 12px; color: #FFF; font-size: 16px;
+            text-align: center; outline: none; transition: 0.3s;
+        }
+        .modern-input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0,242,254,0.2); }
+
+        /* Title Screen */
+        .title-screen { justify-content: center; align-items: center; text-align: center; padding: 40px; }
+        .title-screen-bg { position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; opacity: 0.6; z-index: -1; }
+        .main-logo { font-size: 48px; font-weight: 900; font-family: var(--header-font); color: var(--primary); text-shadow: 0 0 30px var(--primary); margin-bottom: 10px; }
+        .title-desc { font-size: 13px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 60px; }
+
+        /* Ending Screen */
+        .ending-screen { justify-content: center; align-items: center; text-align: center; padding: 30px; }
+        .result-card { 
+            width: 100%; background: var(--card-bg); border: 2px solid var(--secondary); 
+            border-radius: 20px; padding: 30px; margin-top: 20px;
+        }
+        .result-title { font-family: var(--header-font); color: var(--secondary); font-size: 20px; margin-bottom: 20px; }
+        .result-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--glass-border); color: var(--text-dim); font-size: 14px; }
+        .result-val { color: var(--secondary); font-weight: 900; font-family: var(--header-font); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-pop { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000;
+        }
+        .modal-body { 
+            width: 85%; max-width: 380px; background: #13132B; border: 1px solid var(--secondary);
+            border-radius: 20px; padding: 30px; text-align: center;
+        }
+        .modal-title { color: var(--secondary); font-family: var(--header-font); font-size: 18px; margin-bottom: 15px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- HUD Overlay -->
+        <header id="hud-top">
+            <div class="hud-stat">SYSTEM RECOVERY: <span id="progress-val">0</span>%</div>
+            <div class="hud-timer" id="hud-timer">00:00</div>
+            <div class="hud-progress-container">
+                <div class="hud-progress-fill" id="hud-progress-bar" style="width: 0%"></div>
+            </div>
+        </header>
+
+        <!-- TITLE SCREEN -->
+        <section id="screen-title" class="screen active title-screen">
+            <img src="assets/img/title_bg.png" class="title-screen-bg" alt="">
+            <div class="animate-pop">
+                <h1 class="main-logo">POURI</h1>
+                <p class="title-desc">Solar Wind Defense</p>
+                <div class="card" style="margin-top: 20px;">
+                    <input type="text" id="nickname-input" class="modern-input" placeholder="닉네임을 입력하세요" style="width: 100%; margin-bottom: 15px;">
+                    <button class="btn-glow" style="width: 100%;" onclick="pouri.initGame()">미션 시작</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTRO / STORY SCREEN -->
+        <section id="screen-story" class="screen">
+            <div class="bg-view" id="story-bg"></div>
+            <div class="scroll-content">
+                <div class="dogi-speech">
+                    <div class="dogi-avatar">🐕</div>
+                    <div class="speech-bubble">
+                        <strong id="story-speaker">도기 탐정</strong><br>
+                        <p id="story-text" style="margin-top:5px;"></p>
+                    </div>
+                </div>
+                <button class="btn-glow" id="story-next-btn">계속 진행</button>
+            </div>
+        </section>
+
+        <!-- MISSION SCREEN -->
+        <section id="screen-mission" class="screen">
+            <div class="bg-view" id="mission-bg"></div>
+            <div class="scroll-content">
+                <div class="card" style="padding: 12px 16px; background: rgba(0, 242, 254, 0.05); border-color: rgba(0, 242, 254, 0.2); margin-bottom: 15px;">
+                    <span style="font-size: 11px; color: var(--primary); font-family: var(--header-font); font-weight: 900;">MISSION LOG</span>
+                    <p id="mission-log" style="font-size: 13px; color: var(--text-dim); margin-top: 4px;"></p>
+                </div>
+
+                <div class="question-card">
+                    <h2 id="mission-q" class="question-title"></h2>
+                    
+                    <!-- Choice Input -->
+                    <div id="choice-area" class="options-grid"></div>
+
+                    <!-- Text Input -->
+                    <div id="text-area" class="text-input-group" style="display: none;">
+                        <input type="text" id="mission-input" class="modern-input" placeholder="정답을 입력하세요">
+                        <button class="btn-glow" onclick="pouri.checkTextAnswer()">확인</button>
+                    </div>
+                </div>
+
+                <button onclick="pouri.showHint()" style="background:none; border:none; color:var(--secondary); font-size:13px; margin-top:25px; cursor:pointer; text-decoration: underline;">
+                    💡 힌트가 필요한가요?
+                </button>
+            </div>
+        </section>
+
+        <!-- ENDING SCREEN -->
+        <section id="screen-ending" class="screen ending-screen">
+            <img src="assets/img/ending_bg.png" class="title-screen-bg" alt="">
+            <div class="animate-pop">
+                <h1 style="color: var(--secondary); font-family: var(--header-font); font-size: 32px; text-shadow: 0 0 20px var(--secondary);">CLEAR</h1>
+                <p style="color: var(--text-dim); margin-top: 10px;">태양풍으로부터 지구를 지켜냈습니다!</p>
+                
+                <div class="result-card">
+                    <h3 class="result-title">MISSION REPORT</h3>
+                    <div class="result-row"><span>PLAYER</span><span id="res-nick" class="result-val"></span></div>
+                    <div class="result-row"><span>TOTAL TIME</span><span id="res-time" class="result-val"></span></div>
+                    <div class="result-row"><span>HINTS USED</span><span id="res-hints" class="result-val"></span></div>
+                    <p style="font-size: 11px; color: var(--text-dim); margin-top: 20px;">이 화면을 캡처하여 상품을 수령하세요!</p>
+                </div>
+
+                <button class="btn-glow" style="width: 100%; margin-top: 30px;" onclick="location.reload()">새로 시작</button>
+            </div>
+        </section>
+
+        <!-- MODAL: HINT -->
+        <div id="modal-hint" class="modal">
+            <div class="modal-body animate-pop">
+                <h3 class="modal-title">MISSION HINT</h3>
+                <p id="hint-text" style="font-size: 15px; color: var(--text-main); line-height: 1.6;"></p>
+                <button class="btn-glow" style="margin-top: 20px; width: 100%;" onclick="pouri.closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic: The Pouri Agent -->
+    <script>
+        /**
+         * Pouri Master Database (Based on AGENTS.md)
+         */
+        const DATABASE = {
+            stages: [
+                {
+                    id: 0, title: "시스템 접속",
+                    intro: "국제우주정거장(ISS) 네트워크에 긴급 접속했습니다. 태양풍 방어막 가동을 위해 보안 패널을 해킹해야 합니다!",
+                    bg: "assets/img/p0_bg.png",
+                    missions: [
+                        {
+                            type: "text", q: "ISS는 하루에 지구를 몇 바퀴 돌까요?", 
+                            ans: "15.78", hint: "로비 보안 패널 숫자를 확인해봐!", log: "로비 네트워크 보안 해제 중..."
+                        }
+                    ]
+                },
+                {
+                    id: 1, title: "제1전시실: 지구의 탄생",
+                    intro: "지구 탄생의 에너지를 복구해야 합니다. 1전시실 내부의 데이터를 분석하세요.",
+                    bg: "assets/img/p1_bg.png",
+                    missions: [
+                        {
+                            type: "text", q: "생물이 살 수 있는 환경을 만들어준 핵심 요소는?", 
+                            ans: "바다", hint: "지구 탄생 초기 전시물을 잘 봐.", log: "산소 공급 시스템 복구 시도..."
+                        },
+                        {
+                            type: "choice", q: "지구 내부 층 중 액체 상태인 부분은?", 
+                            opts: ["지각", "맨틀", "외핵", "내핵"], ans: 2, 
+                            hint: "지구 내부 구조 표를 참고해.", log: "코어 장치 잠금 분석 중..."
+                        },
+                        {
+                            type: "text", q: "지구와 충돌한 화성 크기 행성의 이름은?", 
+                            ans: "테이아", hint: "거대 충돌설 설명판을 읽어봐.", log: "달 탄생 에너지 코드 추출..."
+                        }
+                    ]
+                },
+                {
+                    id: 2, title: "제2전시실: 별과 우주",
+                    intro: "우주 관측 데이터를 정밀하게 보정해야 합니다. 시스템 정화 작업을 시작합니다.",
+                    bg: "assets/img/p2_bg.png",
+                    missions: [
+                        {
+                            type: "choice", q: "12월의 탄생 별자리는 무엇인가?", 
+                            opts: ["사수자리", "궁수자리", "전갈자리", "염소자리"], ans: 1, 
+                            hint: "입구 별자리판에서 12월을 찾아.", log: "에너지 키트 별자리 잠금 해제..."
+                        },
+                        {
+                            type: "text", q: "시야를 넓게 만든 굴절 망원경의 종류는?", 
+                            ans: "케플러식", hint: "망원경 발달사 전시물을 확인해.", log: "방어막 시야 보정 및 정화 중..."
+                        },
+                        {
+                            type: "text", q: "목성의 하루 길이는 몇 시간인가? (숫자)", 
+                            ans: "9.93", hint: "행성 정보 표의 자전 주기를 봐.", log: "전시실 동력 충전 시스템 가동..."
+                        }
+                    ]
+                },
+                {
+                    id: 3, title: "제3전시실: 최종 방어",
+                    intro: "마지막 단계입니다. 태양 에너지를 안정시켜야 합니다!",
+                    bg: "assets/img/p3_bg.png",
+                    missions: [
+                        {
+                            type: "text", q: "우주인의 활동 반경을 넓혀준 이동 수단은?", 
+                            ans: "월면차", hint: "달 탐사 장비 모형 앞을 봐.", log: "최종 발사 좌표 확보 중..."
+                        },
+                        {
+                            type: "choice", q: "별의 등급을 처음으로 분류한 천문학자는?", 
+                            opts: ["갈릴레오", "히파르코스", "케플러", "뉴턴"], ans: 1, 
+                            hint: "별의 밝기 설명 패널을 읽어봐.", log: "시스템 정밀 안정화 작업..."
+                        },
+                        {
+                            type: "text", q: "수소 핵융합으로 가장 오래 빛나는 단계는?", 
+                            ans: "주계열", hint: "별의 일생 전시물을 확인해.", log: "최종 베리어 에너지 충전 완료!"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        /**
+         * Pouri Game Agent
+         */
+        const pouri = {
+            state: {
+                nick: "",
+                stage: 0,
+                mission: 0,
+                startTime: 0,
+                hints: 0,
+                isCompleted: false
+            },
+            timer: null,
+
+            // Initialization (State Agent)
+            init() {
+                const saved = localStorage.getItem('pouri_save');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if(confirm(`${data.nick}님, 이어하기 하시겠습니까?`)) {
+                            this.state = data;
+                            this.resumeGame();
+                            return;
+                        }
+                    } catch(e) { localStorage.removeItem('pouri_save'); }
+                }
+            },
+
+            initGame() {
+                const val = document.getElementById('nickname-input').value.trim();
+                if(!val) return alert("닉네임을 입력해 주세요!");
+                this.state.nick = val;
+                this.state.startTime = Date.now();
+                this.save();
+                this.showHUD();
+                this.startTimer();
+                this.renderStageIntro();
+            },
+
+            resumeGame() {
+                this.showHUD();
+                this.startTimer();
+                this.renderMission();
+            },
+
+            // Navigation (Flow Control)
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            },
+
+            showHUD() { document.getElementById('hud-top').style.display = 'flex'; },
+
+            // Rendering
+            renderStageIntro() {
+                const s = DATABASE.stages[this.state.stage];
+                document.getElementById('story-bg').style.backgroundImage = `url(${s.bg})`;
+                document.getElementById('story-text').innerText = s.intro;
+                document.getElementById('story-next-btn').onclick = () => this.renderMission();
+                this.showScreen('screen-story');
+            },
+
+            renderMission() {
+                const s = DATABASE.stages[this.state.stage];
+                const m = s.missions[this.state.mission];
+                
+                document.getElementById('mission-bg').style.backgroundImage = `url(${s.bg})`;
+                document.getElementById('mission-log').innerText = m.log;
+                document.getElementById('mission-q').innerText = m.q;
+
+                const cArea = document.getElementById('choice-area');
+                const tArea = document.getElementById('text-area');
+
+                if(m.type === "choice") {
+                    cArea.style.display = "grid";
+                    tArea.style.display = "none";
+                    cArea.innerHTML = "";
+                    m.opts.forEach((o, i) => {
+                        const b = document.createElement('button');
+                        b.className = "option-btn";
+                        b.innerText = `${i+1}. ${o}`;
+                        b.onclick = () => this.checkChoice(i, b);
+                        cArea.appendChild(b);
+                    });
+                } else {
+                    cArea.style.display = "none";
+                    tArea.style.display = "flex";
+                    document.getElementById('mission-input').value = "";
+                }
+
+                this.updateProgress();
+                this.save();
+                this.showScreen('screen-mission');
+            },
+
+            // Validation Agent
+            checkChoice(idx, btn) {
+                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
+                if(idx === m.ans) {
+                    btn.classList.add('correct');
+                    setTimeout(() => this.next(), 600);
+                } else {
+                    btn.classList.add('wrong');
+                    setTimeout(() => btn.classList.remove('wrong'), 400);
+                }
+            },
+
+            checkTextAnswer() {
+                const input = document.getElementById('mission-input');
+                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
+                const val = input.value.trim().replace(/\s/g, "").toLowerCase();
+                const target = m.ans.replace(/\s/g, "").toLowerCase();
+
+                if(val === target) {
+                    input.style.borderColor = "#00E676";
+                    setTimeout(() => this.next(), 600);
+                } else {
+                    input.style.borderColor = "var(--danger)";
+                    setTimeout(() => input.style.borderColor = "var(--glass-border)", 500);
+                }
+            },
+
+            next() {
+                this.state.mission++;
+                const s = DATABASE.stages[this.state.stage];
+                if(this.state.mission >= s.missions.length) {
+                    this.state.stage++;
+                    this.state.mission = 0;
+                    if(this.state.stage >= DATABASE.stages.length) return this.end();
+                    this.renderStageIntro();
+                } else {
+                    this.renderMission();
+                }
+            },
+
+            // Time Agent
+            startTimer() {
+                this.timer = setInterval(() => {
+                    const diff = Date.now() - this.state.startTime;
+                    const min = Math.floor(diff / 60000);
+                    const sec = Math.floor((diff % 60000) / 1000);
+                    document.getElementById('hud-timer').innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                }, 1000);
+            },
+
+            showHint() {
+                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
+                document.getElementById('hint-text').innerText = m.hint;
+                document.getElementById('modal-hint').style.display = "flex";
+                this.state.hints++;
+                this.save();
+            },
+
+            closeModal() { document.getElementById('modal-hint').style.display = "none"; },
+
+            updateProgress() {
+                const total = 10; // 1+3+3+3
+                let done = 0;
+                for(let i=0; i<this.state.stage; i++) done += DATABASE.stages[i].missions.length;
+                done += this.state.mission;
+                const pct = Math.floor((done / total) * 100);
+                document.getElementById('progress-val').innerText = pct;
+                document.getElementById('hud-progress-bar').style.width = pct + "%";
+            },
+
+            save() { localStorage.setItem('pouri_save', JSON.stringify(this.state)); },
+
+            end() {
+                clearInterval(this.timer);
+                localStorage.removeItem('pouri_save');
+                document.getElementById('hud-top').style.display = "none";
+                
+                const diff = Date.now() - this.state.startTime;
+                const min = Math.floor(diff / 60000);
+                const sec = Math.floor((diff % 60000) / 1000);
+                
+                document.getElementById('res-nick').innerText = this.state.nick;
+                document.getElementById('res-time').innerText = `${min}분 ${sec}초`;
+                document.getElementById('res-hints').innerText = `${this.state.hints}개`;
+                
+                this.showScreen('screen-ending');
+            }
+        };
+
+        // Boot
+        window.onload = () => pouri.init();
+    </script>
+</body>
+</html>
