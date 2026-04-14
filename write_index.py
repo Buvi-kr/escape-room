@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+import os
+
+content = """<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -583,4 +585,8 @@
         window.onload = () => Game.init();
     </script>
 </body>
-</html>
+</html>"""
+
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("index.html successfully written with UTF-8 encoding.")
