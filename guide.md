@@ -45,8 +45,8 @@
 | 위치 | 이미지 설명 | 권장 크기 | 나노 바나나 프롬프트 (English) |
 | :--- | :--- | :--- | :--- |
 | **P3-1 (월면차)** | 달 표면의 월면차 | 1080x800 | Lunar Roving Vehicle (LRV) parked on the dusty grey surface of the moon, Earth rising in the background black sky, realistic Apollo mission aesthetic. |
-| **P4-1 (히파르코스)** | 별의 등급 분류 차트 | 1080x800 | Ancient Greek astronomer Hipparchus observing stars, combined with a modern UI showing star magnitude classes (1 to 6), parchment meets digital HUD style. |
-| **P4-2 (주계열성)** | 빛나는 주계열성 별 | 1080x800 | A bright, stable sun-like star (Main Sequence), intense solar flares, core fusion glow, cinematic space photography style, high energy. |
+| **P3-2 (항성)** | 빛나는 항성 홀로그램 | 1080x800 | A glowing star hologram floating in a futuristic science lab, showing the internal structure of a main-sequence star with hot gas layers, scientific HUD overlay with temperature data, cinematic lighting. |
+| **P3-3 (SOHO)** | SOHO 태양 관측 위성 | 1080x800 | The SOHO (Solar and Heliospheric Observatory) satellite orbiting near the Sun, golden solar corona visible, scientific instrument details, realistic space photography, cinematic sunlight. |
 
 ---
 

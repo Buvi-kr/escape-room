@@ -16,7 +16,7 @@
       --success:  #00E676;
       --glass:    rgba(255,255,255,0.07);
       --gborder:  rgba(255,255,255,0.13);
-      --ghover:   rgba(255,255,255,0.13);
+      --ghover:   rgba(255,255,255,0.16);
       --blur:     blur(18px);
       --r-sm:     12px;
       --r-md:     18px;
@@ -54,8 +54,30 @@
     #starfield {
       position: absolute;
       inset: 0;
+      width: 100%; height: 100%;
       z-index: 0;
       pointer-events: none;
+    }
+
+    /* ── FULL BACKGROUND (Intro & Ending only) ──── */
+    #full-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s var(--ease);
+    }
+    #full-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top,
+        rgba(6,6,22,1) 0%,
+        rgba(6,6,22,0.5) 40%,
+        rgba(6,6,22,0.15) 100%);
     }
 
     /* ── SCREEN SYSTEM ───────────────────────────── */
@@ -64,46 +86,47 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      z-index: 1;
+      z-index: 5;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.4s var(--ease);
     }
     .screen.active {
       opacity: 1;
-      pointer-events: all;
+      pointer-events: auto;
     }
 
     /* ── HUD ─────────────────────────────────────── */
     #hud {
       position: absolute;
-      top: 14px; left: 14px; right: 14px;
-      height: 50px;
+      top: 12px; left: 12px; right: 12px;
+      height: 48px;
       display: none;
       align-items: center;
       z-index: 50;
-      background: var(--glass);
+      background: rgba(6,6,22,0.8);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       border-radius: var(--r-md);
       padding: 0 14px;
-      gap: 12px;
+      gap: 10px;
     }
     .hud-col {
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 54px;
+      min-width: 50px;
     }
     .hud-label {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 700;
-      letter-spacing: .12em;
+      letter-spacing: .14em;
       color: var(--primary);
       text-transform: uppercase;
     }
     .hud-val {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       line-height: 1.1;
@@ -111,7 +134,7 @@
     #hud-bar-wrap {
       flex: 1;
       height: 5px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
       border-radius: 3px;
       overflow: hidden;
     }
@@ -125,8 +148,9 @@
 
     /* ── GLASS CARD ──────────────────────────────── */
     .glass {
-      background: var(--glass);
+      background: rgba(6,6,22,0.75);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       border-radius: var(--r-lg);
       padding: 24px;
@@ -142,9 +166,10 @@
       font-weight: 700;
       font-family: inherit;
       cursor: pointer;
-      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      transition: transform .15s var(--ease), box-shadow .2s var(--ease);
       position: relative;
       overflow: hidden;
+      -webkit-appearance: none;
     }
     .btn:active { transform: scale(0.96); }
     .btn + .btn { margin-top: 10px; }
@@ -154,11 +179,12 @@
       color: #000;
       box-shadow: 0 4px 20px rgba(0,242,254,.2);
     }
-    .btn-primary:hover { box-shadow: 0 6px 28px rgba(0,242,254,.35); }
+    .btn-primary:active { box-shadow: 0 2px 10px rgba(0,242,254,.3); }
 
     .btn-ghost {
-      background: var(--glass);
+      background: rgba(255,255,255,0.06);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       color: rgba(255,255,255,.65);
       font-size: 14px;
@@ -184,6 +210,7 @@
       outline: none;
       transition: border-color .2s, box-shadow .2s;
       margin-bottom: 12px;
+      -webkit-appearance: none;
     }
     .field:focus {
       border-color: var(--primary);
@@ -196,6 +223,7 @@
     #screen-intro {
       justify-content: space-between;
       padding: 56px 24px 40px;
+      z-index: 10;
     }
     .intro-hero {
       flex: 1;
@@ -239,104 +267,114 @@
       margin-top: 8px;
     }
 
-    /* ── STORY ───────────────────────────────────── */
-    #screen-story { cursor: pointer; }
+    /* ─────────────────────────────────────────────
+       HYBRID LAYOUT  (Story & Mission screens)
+       ──────────────────────────────────────────── */
+    .split-layout {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      padding-top: 62px; /* HUD clearance */
+    }
 
-    .story-scene {
-      position: absolute;
-      inset: 0;
+    .monitor-area {
+      flex: 0 0 38%;
+      padding: 4px 18px 8px;
+      display: flex;
+    }
+    .monitor-box {
+      width: 100%;
+      border-radius: var(--r-md);
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.12);
       background-size: cover;
       background-position: center;
-      transition: background-image .5s ease;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      transition: background-image 0.5s var(--ease),
+                  box-shadow 0.6s var(--ease),
+                  border-color 0.6s var(--ease);
+      position: relative;
+      overflow: hidden;
     }
-    .story-scene::after {
+    /* scan-line effect on monitor */
+    .monitor-box::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top,
-        rgba(6,6,22,.97) 0%,
-        rgba(6,6,22,.62) 45%,
-        rgba(6,6,22,.18) 100%);
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0,0,0,0.03) 2px,
+        rgba(0,0,0,0.03) 4px
+      );
+      pointer-events: none;
+      border-radius: inherit;
     }
-    .story-ui {
-      position: absolute;
-      inset: 0;
+
+    .control-area {
+      flex: 1;
+      min-height: 0;
+      padding: 6px 18px 20px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
-      padding: 24px 20px 36px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
+    .control-area::-webkit-scrollbar { display: none; }
+
+    /* ── STORY ───────────────────────────────────── */
+    #screen-story { cursor: pointer; }
+
     .story-stage {
       font-size: 10px;
       font-weight: 700;
       letter-spacing: .22em;
       color: var(--gold);
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      text-align: center;
     }
     .char-card {
-      background: var(--glass);
+      background: rgba(6,6,22,0.8);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       border-radius: var(--r-lg);
       padding: 18px 20px 22px;
       position: relative;
+      margin-top: auto;
     }
     .char-name {
       font-size: 11px;
       font-weight: 700;
       color: var(--primary);
       letter-spacing: .06em;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
     #story-text {
-      font-size: 17px;
-      line-height: 1.68;
-      min-height: 56px;
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 50px;
     }
     .tap-cue {
-      position: absolute;
-      bottom: -20px;
-      right: 0;
+      display: block;
+      text-align: right;
+      margin-top: 12px;
       font-size: 11px;
-      color: rgba(255,255,255,.38);
+      color: rgba(255,255,255,.35);
       letter-spacing: .04em;
       animation: blink 1.7s infinite;
     }
 
     /* ── MISSION ─────────────────────────────────── */
-    .mission-scene {
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-    }
-    .mission-scene::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top,
-        rgba(6,6,22,1) 0%,
-        rgba(6,6,22,.78) 40%,
-        rgba(6,6,22,.28) 100%);
-    }
-    .mission-ui {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      padding: 74px 20px 24px;
-      gap: 10px;
-      overflow-y: auto;
-      /* hide scrollbar */
-      scrollbar-width: none;
-    }
-    .mission-ui::-webkit-scrollbar { display: none; }
-
     .mission-hdr {
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-bottom: 8px;
     }
     .m-badge {
       font-size: 10px;
@@ -355,26 +393,29 @@
       letter-spacing: .04em;
     }
     .hc-strip {
-      background: rgba(255,0,85,.1);
-      border: 1px solid rgba(255,0,85,.28);
+      background: rgba(255,0,85,.08);
+      border: 1px solid rgba(255,0,85,.25);
       border-radius: 8px;
-      padding: 7px 14px;
+      padding: 6px 14px;
       font-size: 11px;
       color: #ff99bb;
       text-align: center;
       animation: pulse-red 2.2s infinite;
+      margin-bottom: 8px;
     }
     .q-card {
-      background: var(--glass);
+      background: rgba(6,6,22,0.8);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       border-radius: var(--r-md);
-      padding: 18px 20px;
+      padding: 16px 18px;
+      margin-bottom: 6px;
     }
     #mission-q {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      line-height: 1.48;
+      line-height: 1.5;
       white-space: pre-wrap;
     }
 
@@ -383,24 +424,26 @@
       display: none;
       flex-direction: column;
       gap: 8px;
+      margin-bottom: 8px;
     }
     .opt {
-      background: var(--glass);
+      background: rgba(6,6,22,0.65);
       backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
       border: 1px solid var(--gborder);
       color: #fff;
-      padding: 15px 16px;
+      padding: 14px 16px;
       border-radius: var(--r-sm);
       text-align: left;
       font-size: 15px;
       font-family: inherit;
       cursor: pointer;
-      transition: background .2s, border-color .2s, transform .15s;
+      transition: background .2s, border-color .2s, transform .12s;
       display: flex;
       align-items: center;
       gap: 12px;
+      -webkit-appearance: none;
     }
-    .opt:hover  { background: var(--ghover); }
     .opt:active { transform: scale(0.98); }
     .opt-n { font-size: 11px; font-weight: 800; color: var(--primary); min-width: 18px; }
     .opt.correct {
@@ -414,10 +457,79 @@
       animation: shake .35s;
     }
 
-    /* text area */
-    #text-area { display: none; flex-direction: column; }
+    /* text input area */
+    #text-area { display: none; flex-direction: column; margin-bottom: 8px; }
 
-    .mission-actions { display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
+    /* guide text (replaces hint button) */
+    .guide-text {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 10px 14px;
+      background: rgba(255,215,0,0.06);
+      border: 1px solid rgba(255,215,0,0.15);
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 10px;
+    }
+    .guide-text .guide-icon {
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    /* system HUD inside monitor (fallback) */
+    .sys-hud {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .sys-hud .sys-stage {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      color: var(--primary);
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .sys-hud .sys-mission {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sys-hud .sys-bar-wrap {
+      width: 70%;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .sys-hud .sys-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--gold));
+      border-radius: 2px;
+      transition: width 0.6s var(--ease);
+    }
+    .sys-hud .sys-status {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(0,242,254,0.5);
+      letter-spacing: .1em;
+      animation: blink 2s infinite;
+    }
+
+    .mission-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 
     /* ── ENDING ──────────────────────────────────── */
     #screen-ending {
@@ -425,6 +537,7 @@
       align-items: center;
       padding: 32px 24px;
       gap: 14px;
+      z-index: 10;
     }
     .end-eyebrow {
       font-size: 10px;
@@ -455,7 +568,6 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      transition: background-image .4s;
     }
     .end-title {
       font-size: 26px;
@@ -517,6 +629,7 @@
     #ov-restart {
       background: rgba(200,0,0,.3);
       backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       flex-direction: column;
       text-align: center;
       gap: 10px;
@@ -528,8 +641,9 @@
 
     /* confirm */
     #ov-confirm {
-      background: rgba(0,0,0,.72);
+      background: rgba(0,0,0,.75);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     .confirm-card {
       width: 100%;
@@ -569,6 +683,7 @@
     #ov-hint {
       background: rgba(0,0,0,.78);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     .hint-card {
       width: 100%;
@@ -596,12 +711,12 @@
       80%     { transform: translateX(4px); }
     }
     @keyframes blink {
-      0%,100% { opacity: .38; }
+      0%,100% { opacity: .3; }
       50%     { opacity: 1; }
     }
     @keyframes pulse-red {
-      0%,100% { border-color: rgba(255,0,85,.28); }
-      50%     { border-color: rgba(255,0,85,.65); }
+      0%,100% { border-color: rgba(255,0,85,.2); }
+      50%     { border-color: rgba(255,0,85,.55); }
     }
     @keyframes pop-in {
       0%   { transform: scale(.82); opacity: 0; }
@@ -611,6 +726,10 @@
     @keyframes ripple {
       to { transform: scale(5); opacity: 0; }
     }
+    @keyframes glow-pulse {
+      0%,100% { opacity: 0.6; }
+      50%     { opacity: 1; }
+    }
     .pop { animation: pop-in .3s var(--ease) forwards; }
   </style>
 </head>
@@ -619,6 +738,9 @@
 
   <!-- Starfield canvas -->
   <canvas id="starfield"></canvas>
+
+  <!-- Fullscreen BG (Intro & Ending) -->
+  <div id="full-bg"></div>
 
   <!-- HUD -->
   <div id="hud">
@@ -652,36 +774,43 @@
 
   <!-- ════════ STORY ════════ -->
   <div id="screen-story" class="screen">
-    <div id="story-scene" class="story-scene"></div>
-    <div class="story-ui">
-      <div class="story-stage" id="story-stage"></div>
-      <div class="char-card">
-        <div class="char-name">🔭 &nbsp;도기 탐정</div>
-        <div id="story-text"></div>
-        <span class="tap-cue">화면을 탭하여 계속 →</span>
+    <div class="split-layout" id="story-layout">
+      <div class="monitor-area"><div id="story-monitor" class="monitor-box"></div></div>
+      <div class="control-area">
+        <div class="story-stage" id="story-stage"></div>
+        <div class="char-card">
+          <div class="char-name">🔭 &nbsp;도기 탐정</div>
+          <div id="story-text"></div>
+          <span class="tap-cue">화면을 탭하여 계속 →</span>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ════════ MISSION ════════ -->
   <div id="screen-mission" class="screen">
-    <div id="mission-scene" class="mission-scene"></div>
-    <div class="mission-ui">
-      <div class="mission-hdr">
-        <span class="m-badge" id="m-badge">M01</span>
-        <span class="m-title" id="m-title"></span>
-      </div>
-      <div class="hc-strip">⚡ 오답 시 처음부터 재시작</div>
-      <div class="q-card">
-        <div id="mission-q"></div>
-      </div>
-      <div id="choice-area"></div>
-      <div id="text-area">
-        <input class="field" id="m-input" type="text" placeholder="정답을 입력하세요" autocomplete="off">
-      </div>
-      <div class="mission-actions">
-        <button class="btn btn-primary" id="btn-submit" style="display:none">데이터 송신 →</button>
-        <button class="btn btn-ghost" id="btn-hint">🔍 &nbsp;도움말 (힌트)</button>
+    <div class="split-layout">
+      <div class="monitor-area"><div id="mission-monitor" class="monitor-box"></div></div>
+      <div class="control-area">
+        <div class="mission-hdr">
+          <span class="m-badge" id="m-badge">M01</span>
+          <span class="m-title" id="m-title"></span>
+        </div>
+        <div class="hc-strip">⚡ 오답 시 처음부터 재시작</div>
+        <div class="q-card">
+          <div id="mission-q"></div>
+        </div>
+        <div class="guide-text" id="guide-text">
+          <span class="guide-icon">📍</span>
+          <span id="guide-msg"></span>
+        </div>
+        <div id="choice-area"></div>
+        <div id="text-area">
+          <input class="field" id="m-input" type="text" placeholder="정답을 입력하세요" autocomplete="off">
+        </div>
+        <div class="mission-actions">
+          <button class="btn btn-primary" id="btn-submit" style="display:none">데이터 송신 →</button>
+        </div>
       </div>
     </div>
   </div>
@@ -703,10 +832,6 @@
         <div class="stat-val" id="res-time">--:--</div>
       </div>
       <div class="stat-box">
-        <div class="stat-lbl">힌트 사용</div>
-        <div class="stat-val" id="res-hints">0</div>
-      </div>
-      <div class="stat-box wide">
         <div class="stat-lbl">총 시도</div>
         <div class="stat-val" id="res-attempts">1회</div>
       </div>
@@ -736,14 +861,7 @@
     </div>
   </div>
 
-  <!-- ════════ OVERLAY: hint ════════ -->
-  <div id="ov-hint" class="overlay">
-    <div class="glass hint-card">
-      <div class="hint-title">🔍 &nbsp;도기 탐정의 힌트</div>
-      <p id="hint-text"></p>
-      <button class="btn btn-ghost" id="btn-hint-close">확인</button>
-    </div>
-  </div>
+
 
 </div><!-- /#app -->
 
@@ -756,7 +874,7 @@ const DB = {stages:[
     {id:1,type:"text",
      q:"ISS는 하루에 우리 지구를 몇 번 돌까요?\n(소수점 포함 숫자 · 예: 00.00)",
      ans:"15.78",
-     hint:"로비 보안 패널의 숫자를 확인해봐! 힌트: 15.78",
+     guide:"로비 보안 패널에 적혀있는 숫자를 찾아봐!",
      log:"시스템 로그인 · ISS 동기화",
      imgBefore:"assets/intro_bg.webp",imgSolving:"assets/lobby_iss.webp",imgSolved:"assets/pouri_intro.webp",
      storyBefore:"긴급 상황! 강력한 태양풍이 관측됐어. 지구 방어막 '오메가 베리어'를 켜야 해! 우선 ISS 데이터를 동기화하자.",
@@ -766,7 +884,7 @@ const DB = {stages:[
     {id:2,type:"choice",
      q:"뜨거운 열기를 식혀주고 생명이 태어날 수 있게 해준 이것은?",
      opts:["빙하","바다","대기","화산"],ans:1,
-     hint:"하늘에서 내린 비가 모여 만들어졌어요.",
+     guide:"하늘에서 내린 비가 모여 만들어졌어요. 1전시실 지구 탄생 전시물에서 확인해봐!",
      log:"산소 시스템 복구 데이터",
      imgBefore:"assets/stage1_m02_before.webp",imgSolving:"assets/stage1_m02_solving.webp",imgSolved:"assets/stage1_m02_solved.webp",
      storyBefore:"지구의 탄생 초기, 거대한 바다가 생겨나며 생명이 태어났어. 산소 에너지를 복구하려면 이 데이터가 필요해!",
@@ -774,7 +892,7 @@ const DB = {stages:[
     {id:3,type:"choice",
      q:"지구 가장 깊은 곳, 철과 니켈이 녹아 출렁거리는 이곳은?",
      opts:["지각","맨틀","외핵","내핵"],ans:2,
-     hint:"너무 뜨거워서 금속이 '액체' 상태인 곳이야.",
+     guide:"너무 뜨거워서 금속이 '액체' 상태인 곳이야. 지구 내부 구조 전시물을 살펴봐!",
      log:"코어 베리어 가동",
      imgBefore:"assets/stage1_m03_before.webp",imgSolving:"assets/stage1_m03_solving.webp",imgSolved:"assets/stage1_m03_solved.webp",
      storyBefore:"지구의 엔진인 코어를 안정화해야 해. 액체 상태로 출렁거리며 자기장을 만드는 그곳의 이름은?",
@@ -782,7 +900,7 @@ const DB = {stages:[
     {id:4,type:"text",
      q:"지구가 마그마로 끓고 있을 때, 충돌한 행성의 이름은?",
      ans:"테이아",
-     hint:"1전시실 계단 아래 게시글을 찾아봐. 'ㅌㅇ아'",
+     guide:"1전시실 계단 아래에 있는 달 탄생과 관련된 게시물을 찾아봐!",
      log:"중력 엔진 · 달 동기화",
      imgBefore:"assets/stage1_m04_before.webp",imgSolving:"assets/stage1_m04_solving.webp",imgSolved:"assets/stage1_m04_solved.webp",
      storyBefore:"거대한 행성이 지구와 충돌하며 달이 만들어졌어. 그 행성의 이름을 입력해 중력 동기화를 완료하자!",
@@ -790,9 +908,9 @@ const DB = {stages:[
   ]},
   {name:"2전시실 · 별과 우주",missions:[
     {id:5,type:"choice",
-     q:"12월에 태어난 친구들을 지켜주는 별자리는?",
+     q:"12월에 태어난 친구들을 지켜주는 별자리는?\n(11/23~12/24)",
      opts:["전갈자리","궁수자리","물병자리","사자자리"],ans:1,
-     hint:"상체는 사람, 하체는 말인 켄타우로스야.",
+     guide:"황도 12궁 별자리 전시물을 찾아봐! 해당 별자리는 11월 23일~12월 24일생의 수호 별자리야.",
      log:"우주 좌표 매핑",
      imgBefore:"assets/stage2_m05_before.webp",imgSolving:"assets/stage2_m05_solving.webp",imgSolved:"assets/stage2_m05_solved.webp",
      storyBefore:"정확한 우주 좌표가 필요해. 수호자의 암호 별자리를 찾아 좌표를 매핑하자!",
@@ -800,15 +918,15 @@ const DB = {stages:[
     {id:6,type:"choice",
      q:"갈릴레이 망원경의 좁은 시야를 넓혀준 망원경은?",
      opts:["반사 망원경","케플러식","뉴턴식","전파 망원경"],ans:1,
-     hint:"망원경 발달사 전시물을 확인해.",
+     guide:"망원경 발달사 전시물에서 각 망원경의 특징을 비교해봐!",
      log:"시야 보정 · 렌즈 정렬",
      imgBefore:"assets/stage2_m06_before.webp",imgSolving:"assets/stage2_m06_solving.webp",imgSolved:"assets/stage2_m06_solved.webp",
-     storyBefore:"오메가 베리어 조준점이 흐릿해. 케플러식 망원경의 원리로 시야를 선명하게 교정하자!",
+     storyBefore:"조준 시스템의 초점이 흐릿해! 망원경 발달사 전시를 살펴보고 시야를 선명하게 교정하자!",
      storySolved:"조준 완료! 이제 강력한 에너지를 쏠 회전 동력이 필요해. 행성의 회전 힘을 빌려오자!"},
     {id:7,type:"text",
      q:"태양계에서 가장 빠르게 돌아서 하루가 짧은 행성은?",
      ans:"목성",
-     hint:"자전 주기가 가장 짧은 행성이야. 'ㅁ성'",
+     guide:"행성 정보 게시판에서 각 행성의 자전 주기를 확인해봐!",
      log:"행성 자전 동력 확보",
      imgBefore:"assets/stage2_m07_before.webp",imgSolving:"assets/stage2_m07_solving.webp",imgSolved:"assets/stage2_m07_solved.webp",
      storyBefore:"엄청난 회전 에너지가 필요해. 태양계에서 가장 빨리 회전하는 거대 행성의 힘을 동기화하자!",
@@ -818,26 +936,26 @@ const DB = {stages:[
     {id:8,type:"choice",
      q:"달에서 활동 반경을 넓혀준 '달의 자동차'는?",
      opts:["월면차","화성인","우주셔틀","탐사선"],ans:0,
-     hint:"달 탐사 장비 모형 앞을 봐.",
+     guide:"달 탐사 장비 모형 앞에서 이름을 찾아봐!",
      log:"달 지형 이동 데이터",
      imgBefore:"assets/stage3_m08_before.webp",imgSolving:"assets/stage3_m08_solving.webp",imgSolved:"assets/stage3_m08_solved.webp",
      storyBefore:"마지막 제어 센터에 도달하려면 달의 험난한 지형을 돌파해야 해. 이동 데이터를 전송해!",
-     storySolved:"3전시실 도착! 에너지가 불안정해. 별의 밝기 측정 데이터로 시스템을 안정화하자!"},
+     storySolved:"3전시실 도착! 에너지가 불안정해. 밤하늘에서 스스로 빛나는 별의 정체를 밝혀 시스템을 안정화하자!"},
     {id:9,type:"choice",
-     q:"별의 밝기에 처음으로 번호를 매긴 사람은?",
-     opts:["뉴턴","갈릴레이","히파르코스","아인슈타인"],ans:2,
-     hint:"별의 밝기 설명 패널을 읽어봐.",
-     log:"시스템 파동 안정화",
+     q:"밤하늘에서 스스로 빛나는 별들의 정체는?\n태양과 마찬가지로 고온 가스가 공 모양으로 모인 'OO'이다.",
+     opts:["행성","항성","위성","혜성"],ans:1,
+     guide:"별에 관한 궁금증 전시물을 읽어봐!",
+     log:"에너지원 식별 · 안정화",
      imgBefore:"assets/stage3_m09_before.webp",imgSolving:"assets/stage3_m09_solving.webp",imgSolved:"assets/stage3_m09_solved.webp",
-     storyBefore:"에너지가 요동치고 있어! 별의 등급을 처음으로 나눈 천문학자의 데이터로 파동을 일정하게 유지하자.",
-     storySolved:"안정화 성공! 마지막이야! 별의 황금기 에너지를 뽑아내서 최종 방어막을 가동하자!"},
+     storyBefore:"에너지가 요동치고 있어! 밤하늘에서 스스로 빛나는 별의 정체를 밝혀 시스템을 안정화하자.",
+     storySolved:"안정화 성공! 마지막이야! 태양을 관측하는 위성의 데이터를 가져와서 최종 방어막을 가동하자!"},
     {id:10,type:"text",
-     q:"별이 에너지를 만드는 가장 안정적인 '황금기' 단계는?",
-     ans:"주계열",
-     hint:"별의 일생 전시물을 확인해. 'ㅈ계열'",
+     q:"태양 관측을 위해 1995년 발사된 태양 관측 위성의 이름은?",
+     ans:"SOHO",
+     guide:"태양 관측 위성에 대한 설명 전시물을 읽어봐!",
      log:"최종 오메가 베리어 가동",
      imgBefore:"assets/stage3_m10_before.webp",imgSolving:"assets/stage3_m10_solving.webp",imgSolved:"assets/stage3_m10_solved.webp",
-     storyBefore:"태양풍을 막을 수 있는 유일한 에너지는 별이 가장 밝고 안정적으로 타오르는 이 시기의 에너지야!",
+     storyBefore:"마지막이야! 태양을 관측하는 위성의 데이터를 가져와서 최종 방어막을 가동하자!",
      storySolved:"방어막 가동 성공! 태양풍을 막아냈어. 우리가 지구를 지켰어!"}
   ]}
 ]};
@@ -847,41 +965,46 @@ const DB = {stages:[
 ═══════════════════════════════════════════════ */
 const Starfield = (() => {
   let cvs, ctx, stars=[], raf;
+  const COUNT = 120;
 
   function resize(){
-    cvs.width  = cvs.offsetWidth;
-    cvs.height = cvs.offsetHeight;
+    const r = window.devicePixelRatio || 1;
+    cvs.width  = cvs.clientWidth * r;
+    cvs.height = cvs.clientHeight * r;
+    ctx.scale(r, r);
   }
   function seed(){
-    stars = Array.from({length:140},()=>({
+    stars = Array.from({length:COUNT},()=>({
       x: Math.random(),
       y: Math.random(),
-      r: Math.random()*1.3+0.25,
-      speed: Math.random()*0.00014+0.00003,
-      a: Math.random()*0.55+0.3,
+      r: Math.random()*1.2+0.2,
+      speed: Math.random()*0.00012+0.00002,
+      a: Math.random()*0.5+0.25,
       phase: Math.random()*Math.PI*2
     }));
   }
-  function tick(){
-    const {width:W,height:H} = cvs;
+  function draw(){
+    const W = cvs.clientWidth, H = cvs.clientHeight;
     const t = Date.now()*0.001;
-    ctx.clearRect(0,0,W,H);
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
     for(const s of stars){
       s.y += s.speed;
-      if(s.y>1){s.y=0;s.x=Math.random();}
-      const a = s.a*(0.65+0.35*Math.sin(t*1.1+s.phase));
+      if(s.y>1){s.y=0; s.x=Math.random();}
+      const a = s.a*(0.6+0.4*Math.sin(t*1.1+s.phase));
       ctx.beginPath();
       ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
       ctx.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`;
       ctx.fill();
     }
-    raf = requestAnimationFrame(tick);
+    raf = requestAnimationFrame(draw);
   }
   return {
     init(){
       cvs = document.getElementById('starfield');
       ctx = cvs.getContext('2d');
-      resize(); seed(); tick();
+      seed();
+      // Wait for layout to stabilize before measuring
+      requestAnimationFrame(()=>{ resize(); draw(); });
       window.addEventListener('resize', resize);
     }
   };
@@ -892,16 +1015,20 @@ const Starfield = (() => {
 ═══════════════════════════════════════════════ */
 const Sfx = (() => {
   let ac;
-  function ctx(){ return ac||(ac=new(window.AudioContext||window.webkitAudioContext)()); }
+  function getCtx(){
+    if(!ac) ac = new(window.AudioContext||window.webkitAudioContext)();
+    if(ac.state === 'suspended') ac.resume();
+    return ac;
+  }
   function tone(f,type,dur,vol=0.22){
     try{
-      const a=ctx(), o=a.createOscillator(), g=a.createGain();
+      const a=getCtx(), o=a.createOscillator(), g=a.createGain();
       o.connect(g); g.connect(a.destination);
       o.type=type; o.frequency.value=f;
       g.gain.setValueAtTime(vol,a.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
       o.start(); o.stop(a.currentTime+dur);
-    }catch{}
+    }catch(e){}
   }
   return {
     tap()    { tone(900,'sine',.06,.1); },
@@ -914,27 +1041,47 @@ const Sfx = (() => {
 /* ═══════════════════════════════════════════════
    IMAGE  (graceful fallback per stage)
 ═══════════════════════════════════════════════ */
-const FALLBACK = [
-  'linear-gradient(135deg,#06062a 0%,#0d1a3a 100%)',
-  'linear-gradient(135deg,#071a10 0%,#06062a 100%)',
-  'linear-gradient(135deg,#06062a 0%,#120640 100%)',
-  'linear-gradient(135deg,#12060d 0%,#06062a 100%)',
+const STAGE_COLORS = [
+  {glow:'rgba(0,242,254,0.35)',  border:'rgba(0,242,254,0.5)',   fallback:'linear-gradient(135deg,#06062a 0%,#0d1a3a 100%)'},
+  {glow:'rgba(255,120,50,0.35)', border:'rgba(255,120,50,0.5)',  fallback:'linear-gradient(135deg,#1a0e06 0%,#06062a 100%)'},
+  {glow:'rgba(155,89,182,0.35)', border:'rgba(155,89,182,0.5)',  fallback:'linear-gradient(135deg,#0e0620 0%,#06062a 100%)'},
+  {glow:'rgba(255,215,0,0.35)',  border:'rgba(255,215,0,0.5)',   fallback:'linear-gradient(135deg,#1a1406 0%,#06062a 100%)'},
 ];
-function setBg(el, url, si=0){
-  if(!url){ el.style.backgroundImage=FALLBACK[si]||FALLBACK[0]; return; }
-  const img=new Image();
-  img.onload  = ()=>{ el.style.backgroundImage=`url(${url})`; };
-  img.onerror = ()=>{ el.style.backgroundImage=FALLBACK[si]||FALLBACK[0]; };
-  img.src=url;
+
+function setBg(el, url, si){
+  if(!el) return;
+  const sc = STAGE_COLORS[si] || STAGE_COLORS[0];
+  if(!url){ el.style.backgroundImage = sc.fallback; return; }
+  const img = new Image();
+  img.onload  = ()=>{ el.style.backgroundImage = `url(${url})`; };
+  img.onerror = ()=>{ el.style.backgroundImage = sc.fallback; };
+  img.src = url;
+}
+
+function setMonitorGlow(el, si){
+  if(!el) return;
+  const sc = STAGE_COLORS[si] || STAGE_COLORS[0];
+  el.style.boxShadow = `0 4px 24px ${sc.glow}, inset 0 0 20px rgba(0,0,0,0.3)`;
+  el.style.borderColor = sc.border;
 }
 
 /* ═══════════════════════════════════════════════
    TYPEWRITER
 ═══════════════════════════════════════════════ */
-function typewrite(el, text, speed=26, done){
-  el.textContent='';
-  let i=0;
-  (function step(){ i<text.length ? (el.textContent+=text[i++], setTimeout(step,speed)) : done&&done(); })();
+function typewrite(el, text, speed, doneCb){
+  speed = speed || 28;
+  el.textContent = '';
+  let i = 0, cancelled = false;
+  (function step(){
+    if(cancelled) return;
+    if(i < text.length){
+      el.textContent += text[i++];
+      setTimeout(step, speed);
+    } else {
+      if(doneCb) doneCb();
+    }
+  })();
+  return ()=>{ cancelled = true; };
 }
 
 /* ═══════════════════════════════════════════════
@@ -944,15 +1091,18 @@ const UI = {
   show(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    // Full-bg only for intro & ending
+    const fbg = document.getElementById('full-bg');
+    if(fbg) fbg.style.opacity = (id==='screen-intro' || id==='screen-ending') ? '1' : '0';
   },
   openOv(id) { document.getElementById(id).classList.add('open'); },
   closeOv(id){ document.getElementById(id).classList.remove('open'); },
   showHUD()  { document.getElementById('hud').style.display='flex'; },
   hideHUD()  { document.getElementById('hud').style.display='none'; },
   setProgress(done,total){
-    const pct=Math.floor(done/total*100);
-    document.getElementById('hud-bar').style.width=pct+'%';
-    document.getElementById('hud-pct').textContent=pct;
+    const pct = Math.floor(done/total*100);
+    document.getElementById('hud-bar').style.width = pct+'%';
+    document.getElementById('hud-pct').textContent = pct;
   }
 };
 
@@ -965,12 +1115,12 @@ const Game = (()=>{
   let S, tick, pending;
 
   /* helpers */
-  const m = ()=>DB.stages[S.si].missions[S.mi];
+  const ms = ()=>DB.stages[S.si].missions[S.mi];
   const save = ()=>localStorage.setItem(KEY,JSON.stringify(S));
   const nuke = ()=>localStorage.removeItem(KEY);
   function elapsed(){ return Date.now()-S.t0; }
-  function fmtTime(ms){
-    const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000);
+  function fmtTime(v){
+    const m=Math.floor(v/60000), s=Math.floor((v%60000)/1000);
     return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   }
   function totalDone(){
@@ -988,93 +1138,130 @@ const Game = (()=>{
   }
 
   /* ── story ── */
-  function showStory(text,img,cb){
-    const scene=document.getElementById('story-scene');
-    setBg(scene,img,S.si);
-    document.getElementById('story-stage').textContent=DB.stages[S.si].name;
-    const el=document.getElementById('story-text');
-    let done=false;
+  function showStory(text, img, cb){
+    const monitor = document.getElementById('story-monitor');
+    setBg(monitor, img, S.si);
+    setMonitorGlow(monitor, S.si);
+    document.getElementById('story-stage').textContent = DB.stages[S.si].name;
+
+    const el = document.getElementById('story-text');
+    let done = false;
+    let cancelType = null;
 
     function proceed(){
-      if(!done){ el.textContent=text; done=true; }
-      else cb();
+      if(!done){
+        // Skip typewriter — show full text instantly
+        if(cancelType) cancelType();
+        el.textContent = text;
+        done = true;
+      } else {
+        cb();
+      }
     }
-    document.getElementById('screen-story').onclick=proceed;
-    typewrite(el,text,26,()=>{ done=true; });
+
+    // Attach click handler to the ENTIRE story layout (not the screen)
+    // This ensures clicks pass through correctly
+    const layout = document.getElementById('story-layout');
+    layout.onclick = proceed;
+
+    cancelType = typewrite(el, text, 28, ()=>{ done = true; });
     UI.show('screen-story');
     Sfx.tap();
   }
 
   /* ── quiz ── */
-  function showQuiz(ms){
-    setBg(document.getElementById('mission-scene'),ms.imgSolving,S.si);
-    document.getElementById('m-badge').textContent='M'+String(ms.id).padStart(2,'0');
-    document.getElementById('m-title').textContent=ms.log;
-    document.getElementById('mission-q').textContent=ms.q;
+  function showQuiz(mission){
+    const monitor = document.getElementById('mission-monitor');
+    /* System HUD fallback or image */
+    const pct = Math.floor(totalDone()/TOTAL*100);
+    monitor.innerHTML = `<div class="sys-hud">
+      <div class="sys-stage">${DB.stages[S.si].name}</div>
+      <div class="sys-mission">M${String(mission.id).padStart(2,'0')}</div>
+      <div class="sys-bar-wrap"><div class="sys-bar" style="width:${pct}%"></div></div>
+      <div class="sys-status">▶ SYSTEM ACTIVE</div>
+    </div>`;
+    setBg(monitor, mission.imgSolving, S.si);
+    setMonitorGlow(monitor, S.si);
 
-    const ca=document.getElementById('choice-area');
-    const ta=document.getElementById('text-area');
-    const sub=document.getElementById('btn-submit');
-    const inp=document.getElementById('m-input');
+    document.getElementById('m-badge').textContent = 'M'+String(mission.id).padStart(2,'0');
+    document.getElementById('m-title').textContent = mission.log;
+    document.getElementById('mission-q').textContent = mission.q;
+    document.getElementById('guide-msg').textContent = mission.guide;
 
-    if(ms.type==='choice'){
-      ca.style.display='flex'; ta.style.display='none'; sub.style.display='none';
-      ca.innerHTML=''; delete ca.dataset.locked;
-      ms.opts.forEach((opt,i)=>{
-        const b=document.createElement('button');
-        b.className='opt';
-        b.innerHTML=`<span class="opt-n">${i+1}</span><span>${opt}</span>`;
-        b.addEventListener('click',()=>{
+    const ca  = document.getElementById('choice-area');
+    const ta  = document.getElementById('text-area');
+    const sub = document.getElementById('btn-submit');
+    const inp = document.getElementById('m-input');
+
+    if(mission.type === 'choice'){
+      ca.style.display = 'flex';
+      ta.style.display = 'none';
+      sub.style.display = 'none';
+      ca.innerHTML = '';
+      delete ca.dataset.locked;
+
+      mission.opts.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.className = 'opt';
+        b.innerHTML = `<span class="opt-n">${i+1}</span><span>${opt}</span>`;
+        b.addEventListener('click', () => {
           if(ca.dataset.locked) return;
-          ca.dataset.locked='1'; Sfx.tap();
-          confirm_(opt,()=>resolve(i===ms.ans,b),()=>{ delete ca.dataset.locked; });
+          ca.dataset.locked = '1';
+          Sfx.tap();
+          confirm_(opt, ()=>resolve(i===mission.ans, b), ()=>{ delete ca.dataset.locked; });
         });
         ca.appendChild(b);
       });
     } else {
-      ca.style.display='none'; ta.style.display='flex'; sub.style.display='block';
-      inp.value=''; inp.className='field';
+      ca.style.display = 'none';
+      ta.style.display = 'flex';
+      sub.style.display = 'block';
+      inp.value = '';
+      inp.className = 'field';
 
-      const submit=()=>{
-        const v=inp.value.trim(); if(!v) return;
+      const doSubmit = () => {
+        const v = inp.value.trim();
+        if(!v) return;
         Sfx.tap();
-        confirm_(v,()=>{
-          const ok=v.replace(/\s/g,'').toLowerCase()===ms.ans.replace(/\s/g,'').toLowerCase();
-          inp.className='field '+(ok?'ok':'bad');
+        confirm_(v, ()=>{
+          const ok = v.replace(/\s/g,'').toLowerCase() === mission.ans.replace(/\s/g,'').toLowerCase();
+          inp.className = 'field ' + (ok ? 'ok' : 'bad');
           resolve(ok);
-        },()=>{});
+        }, ()=>{});
       };
-      sub.onclick=submit;
-      inp.onkeydown=e=>{ if(e.key==='Enter') submit(); };
+
+      sub.onclick = doSubmit;
+      inp.onkeydown = e => { if(e.key === 'Enter') doSubmit(); };
     }
 
-    UI.setProgress(totalDone(),TOTAL);
+    UI.setProgress(totalDone(), TOTAL);
     save();
     UI.show('screen-mission');
   }
 
   /* ── confirm overlay ── */
-  function confirm_(ansText,onOk,onCancel){
-    document.getElementById('confirm-ans').textContent=ansText;
+  function confirm_(ansText, onOk, onCancel){
+    // Dismiss mobile keyboard
+    if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    document.getElementById('confirm-ans').textContent = ansText;
     UI.openOv('ov-confirm');
-    pending={onOk,onCancel};
+    pending = {onOk, onCancel};
   }
 
   /* ── resolve answer ── */
-  function resolve(correct,btn){
+  function resolve(correct, btn){
     UI.closeOv('ov-confirm');
     if(correct){
       if(btn) btn.classList.add('correct');
       Sfx.correct();
-      /* ripple effect on correct */
+      /* ripple effect */
       if(btn){
-        const r=document.createElement('div');
-        r.className='ripple-el';
-        r.style.cssText='position:absolute;width:80px;height:80px;border-radius:50%;background:var(--success);pointer-events:none;animation:ripple .6s ease-out forwards;top:50%;left:50%;transform:translate(-50%,-50%)scale(0);opacity:.5;';
+        const r = document.createElement('div');
+        r.style.cssText = 'position:absolute;width:80px;height:80px;border-radius:50%;background:var(--success);pointer-events:none;animation:ripple .6s ease-out forwards;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:.5;';
         btn.appendChild(r);
-        setTimeout(()=>r.remove(),700);
+        setTimeout(()=>r.remove(), 700);
       }
-      setTimeout(()=>{ S.step='solved'; save(); render(); },700);
+      setTimeout(()=>{ S.step='solved'; save(); render(); }, 700);
     } else {
       if(btn) btn.classList.add('wrong');
       Sfx.wrong();
@@ -1085,61 +1272,75 @@ const Game = (()=>{
   /* ── hardcore reset ── */
   function hardcoreReset(){
     UI.openOv('ov-restart');
-    let n=3;
-    document.getElementById('restart-count').textContent=n;
-    const t=setInterval(()=>{
-      document.getElementById('restart-count').textContent=--n;
-      if(n<=0){
-        clearInterval(t); UI.closeOv('ov-restart');
-        S.si=0; S.mi=0; S.step='before'; S.attempts++; save(); render();
+    let n = 3;
+    document.getElementById('restart-count').textContent = n;
+    const t = setInterval(()=>{
+      document.getElementById('restart-count').textContent = --n;
+      if(n <= 0){
+        clearInterval(t);
+        UI.closeOv('ov-restart');
+        S.si = 0; S.mi = 0; S.step = 'before'; S.attempts++;
+        UI.setProgress(0, TOTAL);
+        save();
+        render();
       }
-    },1000);
+    }, 1000);
   }
 
   /* ── advance ── */
   function advance(){
-    S.mi++; S.step='before';
-    if(S.mi>=DB.stages[S.si].missions.length){
-      S.si++; S.mi=0;
-      if(S.si>=DB.stages.length){ end(); return; }
+    S.mi++;
+    S.step = 'before';
+    if(S.mi >= DB.stages[S.si].missions.length){
+      S.si++;
+      S.mi = 0;
+      if(S.si >= DB.stages.length){ end(); return; }
       Sfx.fanfare();
     }
-    save(); render();
+    save();
+    render();
   }
 
   /* ── render ── */
   function render(){
-    const ms=m();
-    if(S.step==='before')  showStory(ms.storyBefore,ms.imgBefore,()=>{ S.step='quiz'; save(); render(); });
-    else if(S.step==='quiz') showQuiz(ms);
-    else if(S.step==='solved') showStory(ms.storySolved,ms.imgSolved,()=>advance());
+    const m = ms();
+    if(S.step === 'before')      showStory(m.storyBefore, m.imgBefore, ()=>{ S.step='quiz'; save(); render(); });
+    else if(S.step === 'quiz')   showQuiz(m);
+    else if(S.step === 'solved') showStory(m.storySolved, m.imgSolved, ()=>advance());
   }
 
   /* ── ending ── */
   function end(){
-    clearInterval(tick); nuke(); UI.hideHUD();
-    const ms=elapsed(), mins=Math.floor(ms/60000);
-    let grade,msg,color;
-    if(mins<10 && S.hints===0 && S.attempts===1){
-      grade='S'; color='#FFD700'; msg='완벽한 수호! 힌트 없이 단번에 클리어. 진정한 도기 탐정입니다!';
-    } else if(mins<15 && S.hints<=1 && S.attempts<=2){
+    clearInterval(tick);
+    nuke();
+    UI.hideHUD();
+
+    const elapsed_ms = elapsed();
+    const mins = Math.floor(elapsed_ms / 60000);
+    let grade, msg, color;
+
+    if(mins < 10 && S.attempts === 1){
+      grade='S'; color='#FFD700'; msg='완벽한 수호! 단번에 클리어. 진정한 도기 탐정입니다!';
+    } else if(mins < 15 && S.attempts <= 2){
       grade='A'; color='#00F2FE'; msg='훌륭한 수호! 빠르고 정확하게 임무를 완수했습니다.';
-    } else if(mins<25 && S.attempts<=4){
+    } else if(mins < 25 && S.attempts <= 4){
       grade='B'; color='#00E676'; msg='성공적인 수호! 지구는 안전합니다. 다음엔 더 빠르게!';
     } else {
       grade='C'; color='#FF9800'; msg='임무 완수! 포기하지 않는 탐정 정신이 지구를 구했습니다.';
     }
-    const ring=document.getElementById('grade-ring');
-    const gl=document.getElementById('grade-letter');
-    ring.style.borderColor=color;
-    ring.style.boxShadow=`0 0 40px ${color}44,inset 0 0 40px ${color}11`;
-    gl.textContent=grade;
-    gl.style.backgroundImage=`linear-gradient(135deg,#fff,${color})`;
-    document.getElementById('res-nick').textContent=S.nick;
-    document.getElementById('res-time').textContent=fmtTime(ms);
-    document.getElementById('res-hints').textContent=S.hints;
-    document.getElementById('res-attempts').textContent=S.attempts+'회';
-    document.getElementById('grade-msg').textContent=msg;
+
+    const ring = document.getElementById('grade-ring');
+    const gl   = document.getElementById('grade-letter');
+    ring.style.borderColor = color;
+    ring.style.boxShadow = `0 0 40px ${color}44, inset 0 0 40px ${color}11`;
+    gl.textContent = grade;
+    gl.style.backgroundImage = `linear-gradient(135deg,#fff,${color})`;
+
+    document.getElementById('res-nick').textContent = S.nick;
+    document.getElementById('res-time').textContent = fmtTime(elapsed_ms);
+    document.getElementById('res-attempts').textContent = S.attempts + '회';
+    document.getElementById('grade-msg').textContent = msg;
+
     UI.show('screen-ending');
     Sfx.fanfare();
   }
@@ -1150,52 +1351,56 @@ const Game = (()=>{
       Starfield.init();
 
       /* start button */
-      document.getElementById('btn-start').addEventListener('click',()=>{
-        const nick=document.getElementById('nick').value.trim();
+      document.getElementById('btn-start').addEventListener('click', () => {
+        const nick = document.getElementById('nick').value.trim();
         if(!nick){ document.getElementById('nick').focus(); return; }
         Sfx.tap();
-        S={nick,si:0,mi:0,step:'before',t0:Date.now(),hints:0,attempts:1};
-        save(); UI.showHUD(); startTick(); render();
+        S = {nick, si:0, mi:0, step:'before', t0:Date.now(), hints:0, attempts:1};
+        save();
+        UI.showHUD();
+        startTick();
+        render();
       });
-      document.getElementById('nick').addEventListener('keydown',e=>{
-        if(e.key==='Enter') document.getElementById('btn-start').click();
+      document.getElementById('nick').addEventListener('keydown', e => {
+        if(e.key === 'Enter') document.getElementById('btn-start').click();
       });
 
-      /* hint */
-      document.getElementById('btn-hint').addEventListener('click',()=>{
-        if(!S) return; Sfx.tap();
-        document.getElementById('hint-text').textContent=m().hint;
-        S.hints++; save(); UI.openOv('ov-hint');
-      });
-      document.getElementById('btn-hint-close').addEventListener('click',()=>UI.closeOv('ov-hint'));
+
 
       /* confirm overlay */
-      document.getElementById('btn-ok').addEventListener('click',()=>{
+      document.getElementById('btn-ok').addEventListener('click', () => {
         if(pending){ const p=pending; pending=null; p.onOk(); }
       });
-      document.getElementById('btn-cancel').addEventListener('click',()=>{
+      document.getElementById('btn-cancel').addEventListener('click', () => {
         UI.closeOv('ov-confirm');
         if(pending){ const p=pending; pending=null; p.onCancel(); }
       });
 
       /* restart */
-      document.getElementById('btn-restart').addEventListener('click',()=>location.reload());
+      document.getElementById('btn-restart').addEventListener('click', ()=>location.reload());
 
       /* resume save? */
-      const raw=localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY);
       if(raw){
         try{
-          const d=JSON.parse(raw);
+          const d = JSON.parse(raw);
           if(confirm(`${d.nick} 탐정님, 이전 기록이 있습니다. 이어하시겠습니까?`)){
-            S=d; UI.showHUD(); startTick(); render(); return;
+            S = d;
+            UI.showHUD();
+            startTick();
+            render();
+            return;
           }
-        }catch{ localStorage.removeItem(KEY); }
+        }catch(e){ localStorage.removeItem(KEY); }
       }
+
+      // No save — show intro
+      UI.show('screen-intro');
     }
   };
 })();
 
-window.addEventListener('load',()=>Game.init());
+window.addEventListener('load', ()=>Game.init());
 </script>
 </body>
 </html>
