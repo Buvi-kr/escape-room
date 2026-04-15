@@ -1,586 +1,1201 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>도기탐정: 태양풍 방어 - 하드코어 에디션</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #00F2FE;
-            --secondary: #FFD700;
-            --accent: #FF0055;
-            --bg-dark: #0A0A1A;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --danger: #FF4B2B;
-            --success: #00E676;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>도기탐정: 태양풍 방어</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ─────────────────────────────────── */
+    :root {
+      --bg:       #060616;
+      --primary:  #00F2FE;
+      --gold:     #FFD700;
+      --accent:   #FF0055;
+      --danger:   #FF4B2B;
+      --success:  #00E676;
+      --glass:    rgba(255,255,255,0.07);
+      --gborder:  rgba(255,255,255,0.13);
+      --ghover:   rgba(255,255,255,0.13);
+      --blur:     blur(18px);
+      --r-sm:     12px;
+      --r-md:     18px;
+      --r-lg:     24px;
+      --ease:     cubic-bezier(0.4,0,0.2,1);
+    }
 
-        * {
-            margin: 0; padding: 0; box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
-        }
+    /* ── RESET ───────────────────────────────────── */
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+      position: fixed;
+    }
 
-        body, html {
-            width: 100%; height: 100%;
-            background: var(--bg-dark);
-            color: #fff;
-            overflow: hidden;
-            position: fixed;
-        }
+    /* ── APP SHELL ───────────────────────────────── */
+    #app {
+      position: relative;
+      width: 100%; height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 0 80px rgba(0,0,0,0.9);
+    }
 
-        #app {
-            width: 100%; height: 100%;
-            max-width: 480px; margin: 0 auto;
-            position: relative;
-            background: #000;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-        }
+    /* ── STARFIELD ───────────────────────────────── */
+    #starfield {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
 
-        /* Screens */
-        .screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 0.5s ease;
-        }
+    /* ── SCREEN SYSTEM ───────────────────────────── */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s var(--ease);
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
 
-        .screen.active { display: flex; animation: fadeIn 0.5s ease forwards; }
+    /* ── HUD ─────────────────────────────────────── */
+    #hud {
+      position: absolute;
+      top: 14px; left: 14px; right: 14px;
+      height: 50px;
+      display: none;
+      align-items: center;
+      z-index: 50;
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-md);
+      padding: 0 14px;
+      gap: 12px;
+    }
+    .hud-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 54px;
+    }
+    .hud-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+    .hud-val {
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    #hud-bar-wrap {
+      flex: 1;
+      height: 5px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    #hud-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--gold));
+      border-radius: 3px;
+      transition: width .6s var(--ease);
+    }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    /* ── GLASS CARD ──────────────────────────────── */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-lg);
+      padding: 24px;
+    }
 
-        /* HUD */
-        #hud-top {
-            position: absolute;
-            top: 15px; left: 15px; right: 15px;
-            height: 60px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            padding: 0 15px;
-        }
+    /* ── BUTTONS ─────────────────────────────────── */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: var(--r-sm);
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn + .btn { margin-top: 10px; }
 
-        .hud-item { display: flex; flex-direction: column; align-items: center; }
-        .hud-label { font-size: 10px; color: var(--primary); text-transform: uppercase; font-weight: bold; }
-        .hud-val { font-size: 18px; font-weight: bold; font-variant-numeric: tabular-nums; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #007AFF);
+      color: #000;
+      box-shadow: 0 4px 20px rgba(0,242,254,.2);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 28px rgba(0,242,254,.35); }
 
-        #progress-container { flex: 1; margin: 0 15px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative; }
-        #hud-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.3s ease; }
+    .btn-ghost {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      color: rgba(255,255,255,.65);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn-cancel {
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--gborder);
+      color: rgba(255,255,255,.6);
+    }
 
-        /* Glass Cards */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
-            width: 100%;
-        }
+    /* ── INPUTS ──────────────────────────────────── */
+    .field {
+      width: 100%;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-sm);
+      padding: 15px 18px;
+      color: #fff;
+      font-size: 17px;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 12px;
+    }
+    .field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0,242,254,.12);
+    }
+    .field.ok  { border-color: var(--success); }
+    .field.bad { border-color: var(--danger); animation: shake .35s; }
 
-        /* Hardcore Warning */
-        .hardcore-warning {
-            background: rgba(255, 0, 85, 0.1);
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-            border: 1px solid rgba(255, 0, 85, 0.3);
-            font-size: 12px;
-            color: #ff99aa;
-            animation: pulse-border 2s infinite;
-        }
+    /* ── INTRO ───────────────────────────────────── */
+    #screen-intro {
+      justify-content: space-between;
+      padding: 56px 24px 40px;
+    }
+    .intro-hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .22em;
+      color: var(--gold);
+      background: rgba(255,215,0,.1);
+      border: 1px solid rgba(255,215,0,.3);
+      padding: 5px 16px;
+      border-radius: 20px;
+    }
+    .logo-title {
+      font-size: 58px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      background: linear-gradient(170deg,#fff 20%,var(--primary) 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo-sub {
+      font-size: 12px;
+      letter-spacing: .42em;
+      color: var(--primary);
+      opacity: .75;
+    }
+    .intro-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,.45);
+      line-height: 1.65;
+      margin-top: 8px;
+    }
 
-        @keyframes pulse-border {
-            0% { border-color: rgba(255,0,85,0.3); }
-            50% { border-color: rgba(255,0,85,0.8); }
-            100% { border-color: rgba(255,0,85,0.3); }
-        }
+    /* ── STORY ───────────────────────────────────── */
+    #screen-story { cursor: pointer; }
 
-        /* UI Elements */
-        .btn {
-            background: linear-gradient(135deg, var(--primary), #00A8FF);
-            color: #000;
-            border: none;
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn:active { transform: scale(0.95); }
+    .story-scene {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: background-image .5s ease;
+    }
+    .story-scene::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top,
+        rgba(6,6,22,.97) 0%,
+        rgba(6,6,22,.62) 45%,
+        rgba(6,6,22,.18) 100%);
+    }
+    .story-ui {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 24px 20px 36px;
+    }
+    .story-stage {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .22em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .char-card {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-lg);
+      padding: 18px 20px 22px;
+      position: relative;
+    }
+    .char-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+    }
+    #story-text {
+      font-size: 17px;
+      line-height: 1.68;
+      min-height: 56px;
+    }
+    .tap-cue {
+      position: absolute;
+      bottom: -20px;
+      right: 0;
+      font-size: 11px;
+      color: rgba(255,255,255,.38);
+      letter-spacing: .04em;
+      animation: blink 1.7s infinite;
+    }
 
-        .option-btn {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: #fff;
-            padding: 16px;
-            margin-bottom: 10px;
-            border-radius: 12px;
-            text-align: left;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .option-btn.correct { background: var(--success); color: #000; border-color: var(--success); }
-        .option-btn.wrong { background: var(--danger); border-color: var(--danger); animation: shake 0.3s; }
+    /* ── MISSION ─────────────────────────────────── */
+    .mission-scene {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .mission-scene::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top,
+        rgba(6,6,22,1) 0%,
+        rgba(6,6,22,.78) 40%,
+        rgba(6,6,22,.28) 100%);
+    }
+    .mission-ui {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 74px 20px 24px;
+      gap: 10px;
+      overflow-y: auto;
+      /* hide scrollbar */
+      scrollbar-width: none;
+    }
+    .mission-ui::-webkit-scrollbar { display: none; }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
+    .mission-hdr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .m-badge {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      background: var(--primary);
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .m-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .04em;
+    }
+    .hc-strip {
+      background: rgba(255,0,85,.1);
+      border: 1px solid rgba(255,0,85,.28);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 11px;
+      color: #ff99bb;
+      text-align: center;
+      animation: pulse-red 2.2s infinite;
+    }
+    .q-card {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-md);
+      padding: 18px 20px;
+    }
+    #mission-q {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.48;
+      white-space: pre-wrap;
+    }
 
-        input[type="text"] {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px;
-            color: #fff;
-            font-size: 18px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+    /* choices */
+    #choice-area {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .opt {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--gborder);
+      color: #fff;
+      padding: 15px 16px;
+      border-radius: var(--r-sm);
+      text-align: left;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, transform .15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .opt:hover  { background: var(--ghover); }
+    .opt:active { transform: scale(0.98); }
+    .opt-n { font-size: 11px; font-weight: 800; color: var(--primary); min-width: 18px; }
+    .opt.correct {
+      background: rgba(0,230,118,.18);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .opt.wrong {
+      background: rgba(255,75,43,.18);
+      border-color: var(--danger);
+      animation: shake .35s;
+    }
 
-        /* Intro/Story Layout */
-        #screen-intro { justify-content: center; }
-        .logo-area { text-align: center; margin-bottom: 40px; }
-        .logo-title { font-size: 42px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(to bottom, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo-sub { font-size: 14px; letter-spacing: 5px; color: var(--secondary); margin-top: -5px; }
+    /* text area */
+    #text-area { display: none; flex-direction: column; }
 
-        /* Story Card Layout */
-        .story-container {
-            margin-top: auto;
-            margin-bottom: 20px;
-        }
-        .dogi-talk {
-            font-size: 18px;
-            line-height: 1.6;
-            margin-top: 10px;
-        }
+    .mission-actions { display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
 
-        /* Restart Notification */
-        #restart-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            display: none;
-            flex-direction: column; width: 100%;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            text-align: center;
-        }
-        #restart-overlay h2 { font-size: 32px; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px #000; }
+    /* ── ENDING ──────────────────────────────────── */
+    #screen-ending {
+      justify-content: center;
+      align-items: center;
+      padding: 32px 24px;
+      gap: 14px;
+    }
+    .end-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .3em;
+      color: var(--gold);
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .grade-ring {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      border: 3px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 40px rgba(0,242,254,.25),
+                  inset 0 0 40px rgba(0,242,254,.05);
+      transition: border-color .4s, box-shadow .4s;
+    }
+    .grade-letter {
+      font-size: 60px;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg,#fff,var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: background-image .4s;
+    }
+    .end-title {
+      font-size: 26px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .end-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,.55);
+      text-align: center;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+    }
+    .stat-box {
+      background: var(--glass);
+      border: 1px solid var(--gborder);
+      border-radius: var(--r-md);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-box.wide { grid-column: span 2; }
+    .stat-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    #grade-msg {
+      font-size: 13px;
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      line-height: 1.6;
+    }
 
-        /* Ending Screen */
-        .ending-stats {
-            margin: 20px 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .stat-box {
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 15px;
-            text-align: center;
-        }
-        .stat-box .v { font-size: 24px; font-weight: bold; color: var(--primary); }
-    </style>
+    /* ── OVERLAYS ────────────────────────────────── */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+    .overlay.open { display: flex; }
+
+    /* restart */
+    #ov-restart {
+      background: rgba(200,0,0,.3);
+      backdrop-filter: blur(14px);
+      flex-direction: column;
+      text-align: center;
+      gap: 10px;
+    }
+    #ov-restart .icon  { font-size: 68px; }
+    #ov-restart .title { font-size: 26px; font-weight: 800; }
+    #ov-restart .sub   { font-size: 13px; color: rgba(255,255,255,.65); }
+    #restart-count     { font-size: 52px; font-weight: 800; color: var(--gold); }
+
+    /* confirm */
+    #ov-confirm {
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(12px);
+    }
+    .confirm-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .confirm-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .1em;
+      text-align: center;
+    }
+    .confirm-q {
+      font-size: 14px;
+      color: rgba(255,255,255,.65);
+      text-align: center;
+    }
+    .confirm-ans {
+      font-size: 21px;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      background: rgba(0,242,254,.07);
+      border: 1px solid rgba(0,242,254,.2);
+      border-radius: var(--r-sm);
+      padding: 14px;
+    }
+    .confirm-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* hint */
+    #ov-hint {
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(12px);
+    }
+    .hint-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .hint-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    #hint-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: rgba(255,255,255,.82);
+    }
+
+    /* ── KEYFRAMES ───────────────────────────────── */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-7px); }
+      40%     { transform: translateX(7px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+    @keyframes blink {
+      0%,100% { opacity: .38; }
+      50%     { opacity: 1; }
+    }
+    @keyframes pulse-red {
+      0%,100% { border-color: rgba(255,0,85,.28); }
+      50%     { border-color: rgba(255,0,85,.65); }
+    }
+    @keyframes pop-in {
+      0%   { transform: scale(.82); opacity: 0; }
+      60%  { transform: scale(1.04); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes ripple {
+      to { transform: scale(5); opacity: 0; }
+    }
+    .pop { animation: pop-in .3s var(--ease) forwards; }
+  </style>
 </head>
 <body>
-    <div id="app">
-        <!-- HUD -->
-        <div id="hud-top">
-            <div class="hud-item">
-                <span class="hud-label">Time</span>
-                <span id="hud-timer" class="hud-val">00:00</span>
-            </div>
-            <div id="progress-container">
-                <div id="hud-progress-bar"></div>
-            </div>
-            <div class="hud-item">
-                <span class="hud-label">Progress</span>
-                <span class="hud-val"><span id="progress-val">0</span>%</span>
-            </div>
-        </div>
+<div id="app">
 
-        <!-- Start Screen -->
-        <div id="screen-intro" class="screen active" style="background-image: url('assets/intro_bg.webp');">
-            <div class="logo-area">
-                <h1 class="logo-title">DOGI</h1>
-                <p class="logo-sub">SOLAR WIND DEFENSE</p>
-            </div>
-            <div class="glass-card">
-                <input type="text" id="nickname-input" placeholder="도기 탐정의 이름(닉네임)" maxlength="10">
-                <button class="btn" onclick="Game.initGame()">프로젝트 가동</button>
-                <p style="text-align: center; font-size: 12px; opacity: 0.6; margin-top: 15px;">※ 주의: 오답 시 처음부터 다시 시작합니다.</p>
-            </div>
-        </div>
+  <!-- Starfield canvas -->
+  <canvas id="starfield"></canvas>
 
-        <!-- Story/Narrative Card Screen -->
-        <div id="screen-story" class="screen">
-            <div class="story-container">
-                <div class="glass-card">
-                    <div id="story-label" style="font-size: 12px; color: var(--secondary); font-weight: bold; margin-bottom: 5px;">STORY LOG</div>
-                    <div id="story-text" class="dogi-talk">...</div>
-                    <button id="story-next-btn" class="btn">계속하기</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mission/Quiz Screen -->
-        <div id="screen-mission" class="screen">
-            <div class="hardcore-warning">⚠ 경고: 오답 시 시스템 리셋 - 처음부터 다시 시도해야 합니다.</div>
-            <div class="glass-card" style="margin-bottom: auto;">
-                <div id="mission-log" style="font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 10px;">MISSION LOG</div>
-                <div id="mission-q" style="font-size: 18px; font-weight: bold; line-height: 1.4;">...</div>
-            </div>
-            <div id="choice-area" style="display: none; margin-top: 20px;"></div>
-            <div id="text-area" style="display: none; margin-top: 20px; flex-direction: column;">
-                <input type="text" id="mission-input" placeholder="정답을 입력하세요">
-                <button class="btn" onclick="Game.checkTextAnswer()">데이터 송신</button>
-            </div>
-            <button class="btn" onclick="Game.showHint()" style="background: var(--glass-bg); color: #fff; margin-top: 10px; border: 1px solid var(--glass-border); font-size: 14px; box-shadow: none;">도움말(힌트)</button>
-        </div>
-
-        <!-- Ending Screen -->
-        <div id="screen-ending" class="screen">
-            <div class="glass-card" style="margin-top: 100px; text-align: center;">
-                <h2 style="font-size: 32px; color: var(--secondary); margin-bottom: 10px;">지구 수호 완료!</h2>
-                <p><span id="res-nick" style="color:var(--primary); font-weight: bold;"></span> 탐정님, 수고하셨습니다.</p>
-                <div class="ending-stats">
-                    <div class="stat-box">
-                        <div class="hud-label">소요 시간</div>
-                        <div id="res-time" class="v">00:00</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="hud-label">힌트 사용</div>
-                        <div id="res-hints" class="v">0</div>
-                    </div>
-                    <div class="stat-box" style="grid-column: span 2;">
-                        <div class="hud-label">총 시도 횟수</div>
-                        <div id="res-attempts" class="v">0</div>
-                    </div>
-                </div>
-                <button class="btn" onclick="location.reload()">새로운 임무 시작</button>
-            </div>
-        </div>
-
-        <!-- Restart Overlay -->
-        <div id="restart-overlay">
-            <div style="font-size: 80px;">❌</div>
-            <h2>시스템 오류 발생</h2>
-            <p>보안 규정에 따라 처음부터 다시 시작합니다.</p>
-            <div id="restart-countdown" style="font-size: 40px; font-weight: bold; margin-top: 20px; color: var(--secondary);">3</div>
-        </div>
-
-        <!-- Hint Modal -->
-        <div id="modal-hint" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; justify-content:center; align-items:center; z-index:200;">
-            <div class="glass-card" style="margin: 30px;">
-                <h3 style="margin-bottom: 15px; color: var(--secondary);">🔍 도기 탐정의 힌트</h3>
-                <p id="hint-text" style="line-height: 1.6;">...</p>
-                <button class="btn" onclick="Game.closeModal()">확인</button>
-            </div>
-        </div>
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-col">
+      <span class="hud-label">TIME</span>
+      <span class="hud-val" id="hud-timer">00:00</span>
     </div>
+    <div id="hud-bar-wrap"><div id="hud-bar"></div></div>
+    <div class="hud-col">
+      <span class="hud-label">진행</span>
+      <span class="hud-val"><span id="hud-pct">0</span>%</span>
+    </div>
+  </div>
 
-    <script>
-        const DATABASE = {
-            stages: [
-                {
-                    name: "Intro & Lobby",
-                    missions: [
-                        {
-                            id: 1, type: "text", q: "ISS는 하루에 우리 지구를 몇 번 돌까요? (숫자 4자리 입력)", ans: "15.78",
-                            hint: "로비 보안 패널 숫자를 확인해! (15.78)",
-                            narrationBefore: "긴급 상황! 강력한 태양풍이 관측됐어. 지구 방어막 '오메가 베리어'를 켜야 해! 우선 ISS 데이터를 동기화하자.",
-                            narrationSolved: "로그인 성공! 하지만 방어막 연료인 산소 에너지가 부족해. 지구의 탄생 데이터를 분석하러 가자!",
-                            imgBefore: "assets/intro_bg.webp", imgSolving: "assets/lobby_iss.webp", imgSolved: "assets/pouri_intro.webp",
-                            log: "시스템 로그인 및 ISS 동기화"
-                        }
-                    ]
-                },
-                {
-                    name: "1전시실: 지구 이야기",
-                    missions: [
-                        {
-                            id: 2, type: "choice", q: "뜨거운 열기를 식혀주고 생명이 태어날 수 있게 해준 이것은?", opts: ["빙하", "바다", "대기", "화산"], ans: 1,
-                            hint: "하늘에서 내린 비가 모여 만들어졌어요.",
-                            narrationBefore: "지구의 탄생 초기, 거대한 바다가 생겨나며 생명이 태어났어. 산소 에너지를 복구하려면 이 데이터가 필요해!",
-                            narrationSolved: "산소 복구 완료! 하지만 태양풍의 열기가 너무 뜨거워. 지구의 코어 에너지가 필요해!",
-                            imgBefore: "assets/stage1_m02_before.webp", imgSolving: "assets/stage1_m02_solving.webp", imgSolved: "assets/stage1_m02_solved.webp",
-                            log: "산소 시스템 복구 데이터 분석"
-                        },
-                        {
-                            id: 3, type: "choice", q: "지구 가장 깊은 곳, 철과 니켈이 녹아 출렁거리는 이곳은?", opts: ["지각", "맨틀", "외핵", "내핵"], ans: 2,
-                            hint: "너무 뜨거워서 금속이 '액체' 상태인 곳이야.",
-                            narrationBefore: "지구의 엔진인 코어를 안정화해야 해. 액체 상태로 출렁거리며 자기장을 만드는 그곳의 이름은?",
-                            narrationSolved: "코어 보호 성공! 이제 지구의 단짝인 달의 중력 엔진을 켜야 해. 충돌 데이터를 찾아줘!",
-                            imgBefore: "assets/stage1_m03_before.webp", imgSolving: "assets/stage1_m03_solving.webp", imgSolved: "assets/stage1_m03_solved.webp",
-                            log: "코어 베리어 가동 프로젝트"
-                        },
-                        {
-                            id: 4, type: "text", q: "지구가 마그마로 끓고 있을 때, 충돌한 행성의 이름은?", ans: "테이아",
-                            hint: "1전시실 계단 아래 게시글을 찾아봐. 'ㅌㅇ아'",
-                            narrationBefore: "거대한 행성이 지구와 충돌하며 달이 만들어졌어. 그 행성의 이름을 입력해 중력 동기화를 완료하자!",
-                            narrationSolved: "1전시실 완료! 이제 방어막을 쏠 정확한 우주 좌표가 필요해. 수호자의 암호를 풀어봐!",
-                            imgBefore: "assets/stage1_m04_before.webp", imgSolving: "assets/stage1_m04_solving.webp", imgSolved: "assets/stage1_m04_solved.webp",
-                            log: "중력 엔진 가동 및 달 동기화"
-                        }
-                    ]
-                },
-                {
-                    name: "2전시실: 별과 우주",
-                    missions: [
-                        {
-                            id: 5, type: "choice", q: "12월에 태어난 친구들을 지켜주는 별자리는?", opts: ["전갈자리", "궁수자리", "물병자리", "사자자리"], ans: 1,
-                            hint: "상체는 사람, 하체는 말인 켄타우로스야.",
-                            narrationBefore: "정확한 우주 좌표가 필요해. 수호자의 암호 별자리를 찾아 좌표를 매핑하자!",
-                            narrationSolved: "좌표 확보! 하지만 초점이 안 맞아. 망원경의 원리로 조준점을 선명하게 맞춰야 해!",
-                            imgBefore: "assets/stage2_m05_before.webp", imgSolving: "assets/stage2_m05_solving.webp", imgSolved: "assets/stage2_m05_solved.webp",
-                            log: "우주 좌표 매핑"
-                        },
-                        {
-                            id: 6, type: "choice", q: "갈릴레이 망원경의 좁은 시야를 넓혀준 망원경은?", opts: ["반사 망원경", "케플러식", "뉴턴식", "전파 망원경"], ans: 1,
-                            hint: "망원경 발달사 전시물을 확인해.",
-                            narrationBefore: "오메가 베리어 조준점이 흐릿해. 케플러식 망원경의 원리로 시야를 선명하게 교정하자!",
-                            narrationSolved: "조준 완료! 이제 강력한 에너지를 쏠 회전 동력이 필요해. 행성의 회전 힘을 빌려오자!",
-                            imgBefore: "assets/stage2_m06_before.webp", imgSolving: "assets/stage2_m06_solving.webp", imgSolved: "assets/stage2_m06_solved.webp",
-                            log: "시야 보정 및 렌즈 정렬"
-                        },
-                        {
-                            id: 7, type: "text", q: "태양계에서 가장 빠르게 돌아서 하루가 짧은 행성은?", ans: "목성",
-                            hint: "자전 주기가 가장 짧은 행성이야. 'ㅁ성'",
-                            narrationBefore: "엄청난 회전 에너지가 필요해. 태양계에서 가장 빨리 회전하는 거대 행성의 힘을 동기화하자!",
-                            narrationSolved: "동력 충전 완료! 마지막 코어를 켜러 가야 해. 달의 험난한 지형을 이동할 데이터를 가져와!",
-                            imgBefore: "assets/stage2_m07_before.webp", imgSolving: "assets/stage2_m07_solving.webp", imgSolved: "assets/stage2_m07_solved.webp",
-                            log: "행성 자전 동력 확보"
-                        }
-                    ]
-                },
-                {
-                    name: "3전시실: 최종 방어",
-                    missions: [
-                        {
-                            id: 8, type: "choice", q: "달에서 활동 반경을 넓혀준 '달의 자동차'는?", opts: ["월면차", "화성인", "우주셔틀", "탐사선"], ans: 0,
-                            hint: "달 탐사 장비 모형 앞을 봐.",
-                            narrationBefore: "마지막 제어 센터에 도달하려면 달의 험난한 지형을 돌파해야 해. 이동 데이터를 전송해!",
-                            narrationSolved: "3전시실 도착! 에너지가 불안정해. 별의 밝기 측정 데이터로 시스템을 안정화하자!",
-                            imgBefore: "assets/stage3_m08_before.webp", imgSolving: "assets/stage3_m08_solving.webp", imgSolved: "assets/stage3_m08_solved.webp",
-                            log: "달 지형 이동 데이터 분석"
-                        },
-                        {
-                            id: 9, type: "choice", q: "별의 밝기에 처음으로 번호를 매긴 사람은?", opts: ["뉴턴", "갈릴레이", "히파르코스", "아인슈타인"], ans: 2,
-                            hint: "별의 밝기 설명 패널을 읽어봐.",
-                            narrationBefore: "에너지가 요동치고 있어! 별의 등급을 처음으로 나눈 천문학자의 데이터로 파동을 일정하게 유지하자.",
-                            narrationSolved: "안정화 성공! 마지막이야! 별의 황금기 에너지를 뽑아내서 최종 방어막을 가동하자!",
-                            imgBefore: "assets/stage3_m09_before.webp", imgSolving: "assets/stage3_m09_solving.webp", imgSolved: "assets/stage3_m09_solved.webp",
-                            log: "시스템 파동 안정화"
-                        },
-                        {
-                            id: 10, type: "text", q: "별이 에너지를 만드는 가장 안정적인 '황금기' 단계는?", ans: "주계열",
-                            hint: "별의 일생 전시물을 확인해. 'ㅈ계열'",
-                            narrationBefore: "태양풍을 막을 수 있는 유일한 에너지는 별이 가장 밝고 안정적으로 타오르는 이 시기의 에너지야!",
-                            narrationSolved: "방어막 가동 성공! 태양풍을 막아냈어. 우리가 지구를 지켰어!",
-                            imgBefore: "assets/stage3_m10_before.webp", imgSolving: "assets/stage3_m10_solving.webp", imgSolved: "assets/stage3_m10_solved.webp",
-                            log: "최종 오메가 베리어 가동"
-                        }
-                    ]
-                }
-            ]
-        };
+  <!-- ════════ INTRO ════════ -->
+  <div id="screen-intro" class="screen">
+    <div class="intro-hero">
+      <div class="badge">포천 아트밸리 천문과학관</div>
+      <div class="logo-title">DOGI</div>
+      <div class="logo-sub">SOLAR WIND DEFENSE</div>
+      <p class="intro-desc">강력한 태양풍이 지구를 향해 오고 있다<br>전시관을 탐험하며 10개의 임무를 완수하라</p>
+    </div>
+    <div class="glass">
+      <input class="field" id="nick" type="text" placeholder="도기 탐정의 코드명" maxlength="10" autocomplete="off">
+      <button class="btn btn-primary" id="btn-start">▶ 작전 개시</button>
+      <p style="text-align:center;font-size:11px;opacity:.38;margin-top:12px;line-height:1.6">
+        오답 시 처음부터 재시작 &nbsp;·&nbsp; 진행 자동 저장
+      </p>
+    </div>
+  </div>
 
-        const Game = {
-            state: { nick: "", stage: 0, mission: 0, subStep: "before", startTime: 0, hints: 0, attempts: 1 },
-            timer: null,
+  <!-- ════════ STORY ════════ -->
+  <div id="screen-story" class="screen">
+    <div id="story-scene" class="story-scene"></div>
+    <div class="story-ui">
+      <div class="story-stage" id="story-stage"></div>
+      <div class="char-card">
+        <div class="char-name">🔭 &nbsp;도기 탐정</div>
+        <div id="story-text"></div>
+        <span class="tap-cue">화면을 탭하여 계속 →</span>
+      </div>
+    </div>
+  </div>
 
-            init() {
-                const saved = localStorage.getItem('Dogi_save_hardcore');
-                if (saved) {
-                    try {
-                        const data = JSON.parse(saved);
-                        if(confirm(`${data.nick} 탐정님, 이전 기록이 있습니다. 이어하시겠습니까?`)) {
-                            this.state = data;
-                            this.resumeGame();
-                            return;
-                        }
-                    } catch(e) { localStorage.removeItem('Dogi_save_hardcore'); }
-                }
-            },
+  <!-- ════════ MISSION ════════ -->
+  <div id="screen-mission" class="screen">
+    <div id="mission-scene" class="mission-scene"></div>
+    <div class="mission-ui">
+      <div class="mission-hdr">
+        <span class="m-badge" id="m-badge">M01</span>
+        <span class="m-title" id="m-title"></span>
+      </div>
+      <div class="hc-strip">⚡ 오답 시 처음부터 재시작</div>
+      <div class="q-card">
+        <div id="mission-q"></div>
+      </div>
+      <div id="choice-area"></div>
+      <div id="text-area">
+        <input class="field" id="m-input" type="text" placeholder="정답을 입력하세요" autocomplete="off">
+      </div>
+      <div class="mission-actions">
+        <button class="btn btn-primary" id="btn-submit" style="display:none">데이터 송신 →</button>
+        <button class="btn btn-ghost" id="btn-hint">🔍 &nbsp;도움말 (힌트)</button>
+      </div>
+    </div>
+  </div>
 
-            initGame() {
-                const val = document.getElementById('nickname-input').value.trim();
-                if(!val) return alert("도기 탐정의 이름을 입력해주세요!");
-                this.state.nick = val;
-                this.state.startTime = Date.now();
-                this.state.stage = 0; this.state.mission = 0; this.state.subStep = "before";
-                this.save(); this.showHUD(); this.startTimer(); this.render();
-            },
+  <!-- ════════ ENDING ════════ -->
+  <div id="screen-ending" class="screen">
+    <div class="end-eyebrow">MISSION COMPLETE</div>
+    <div class="grade-ring" id="grade-ring">
+      <div class="grade-letter" id="grade-letter">S</div>
+    </div>
+    <div class="end-title">지구 수호 완료!</div>
+    <div class="end-sub">
+      <span id="res-nick" style="color:var(--primary);font-weight:700"></span>
+      &nbsp;탐정님, 임무 완수!
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-lbl">소요 시간</div>
+        <div class="stat-val" id="res-time">--:--</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-lbl">힌트 사용</div>
+        <div class="stat-val" id="res-hints">0</div>
+      </div>
+      <div class="stat-box wide">
+        <div class="stat-lbl">총 시도</div>
+        <div class="stat-val" id="res-attempts">1회</div>
+      </div>
+    </div>
+    <div id="grade-msg"></div>
+    <button class="btn btn-primary" id="btn-restart">↩ 새 임무 시작</button>
+  </div>
 
-            resumeGame() { this.showHUD(); this.startTimer(); this.render(); },
-            showHUD() { document.getElementById('hud-top').style.display = 'flex'; },
+  <!-- ════════ OVERLAY: restart ════════ -->
+  <div id="ov-restart" class="overlay">
+    <div class="icon">⚠️</div>
+    <div class="title">시스템 오류!</div>
+    <div class="sub">보안 규정: 처음부터 재시작합니다</div>
+    <div id="restart-count">3</div>
+  </div>
 
-            render() {
-                const s = DATABASE.stages[this.state.stage];
-                const m = s.missions[this.state.mission];
-                if(this.state.subStep === "before") {
-                    this.renderStory(m.narrationBefore, m.imgBefore, () => {
-                        this.state.subStep = "solving"; this.save(); this.render();
-                    });
-                } else if(this.state.subStep === "solving") {
-                    this.renderQuiz(m);
-                } else if(this.state.subStep === "solved") {
-                    this.renderStory(m.narrationSolved, m.imgSolved, () => { this.next(); });
-                }
-            },
+  <!-- ════════ OVERLAY: confirm ════════ -->
+  <div id="ov-confirm" class="overlay">
+    <div class="glass confirm-card">
+      <div class="confirm-eyebrow">⚠ HARDCORE MODE</div>
+      <div class="confirm-q">이 답으로 제출하시겠습니까?</div>
+      <div class="confirm-ans" id="confirm-ans"></div>
+      <div class="confirm-row">
+        <button class="btn btn-cancel" id="btn-cancel">취소</button>
+        <button class="btn btn-primary" id="btn-ok">제출</button>
+      </div>
+    </div>
+  </div>
 
-            renderStory(text, bg, callback) {
-                const screen = document.getElementById('screen-story');
-                screen.style.backgroundImage = `url(${bg})`;
-                document.getElementById('story-text').innerText = text;
-                document.getElementById('story-next-btn').onclick = callback;
-                this.showScreen('screen-story');
-            },
+  <!-- ════════ OVERLAY: hint ════════ -->
+  <div id="ov-hint" class="overlay">
+    <div class="glass hint-card">
+      <div class="hint-title">🔍 &nbsp;도기 탐정의 힌트</div>
+      <p id="hint-text"></p>
+      <button class="btn btn-ghost" id="btn-hint-close">확인</button>
+    </div>
+  </div>
 
-            renderQuiz(m) {
-                const screen = document.getElementById('screen-mission');
-                screen.style.backgroundImage = `url(${m.imgSolving})`;
-                document.getElementById('mission-log').innerText = m.log;
-                document.getElementById('mission-q').innerText = m.q;
-                const cArea = document.getElementById('choice-area');
-                const tArea = document.getElementById('text-area');
-                if(m.type === "choice") {
-                    cArea.style.display = "grid"; tArea.style.display = "none"; cArea.innerHTML = "";
-                    m.opts.forEach((o, i) => {
-                        const b = document.createElement('button');
-                        b.className = "option-btn"; b.innerText = `${i+1}. ${o}`;
-                        b.onclick = () => this.handleAnswer(i === m.ans, b);
-                        cArea.appendChild(b);
-                    });
-                } else {
-                    cArea.style.display = "none"; tArea.style.display = "flex";
-                    document.getElementById('mission-input').value = "";
-                }
-                this.updateProgress(); this.save(); this.showScreen('screen-mission');
-            },
+</div><!-- /#app -->
 
-            handleAnswer(isCorrect, btn) {
-                if(isCorrect) {
-                    if(btn) btn.classList.add('correct');
-                    setTimeout(() => { this.state.subStep = "solved"; this.save(); this.render(); }, 600);
-                } else {
-                    if(btn) btn.classList.add('wrong');
-                    this.triggerHardcoreReset();
-                }
-            },
+<script>
+/* ═══════════════════════════════════════════════
+   DATABASE
+═══════════════════════════════════════════════ */
+const DB = {stages:[
+  {name:"INTRO · 로비",missions:[
+    {id:1,type:"text",
+     q:"ISS는 하루에 우리 지구를 몇 번 돌까요?\n(소수점 포함 숫자 · 예: 00.00)",
+     ans:"15.78",
+     hint:"로비 보안 패널의 숫자를 확인해봐! 힌트: 15.78",
+     log:"시스템 로그인 · ISS 동기화",
+     imgBefore:"assets/intro_bg.webp",imgSolving:"assets/lobby_iss.webp",imgSolved:"assets/pouri_intro.webp",
+     storyBefore:"긴급 상황! 강력한 태양풍이 관측됐어. 지구 방어막 '오메가 베리어'를 켜야 해! 우선 ISS 데이터를 동기화하자.",
+     storySolved:"로그인 성공! 하지만 방어막 연료인 산소 에너지가 부족해. 지구의 탄생 데이터를 분석하러 가자!"}
+  ]},
+  {name:"1전시실 · 지구 이야기",missions:[
+    {id:2,type:"choice",
+     q:"뜨거운 열기를 식혀주고 생명이 태어날 수 있게 해준 이것은?",
+     opts:["빙하","바다","대기","화산"],ans:1,
+     hint:"하늘에서 내린 비가 모여 만들어졌어요.",
+     log:"산소 시스템 복구 데이터",
+     imgBefore:"assets/stage1_m02_before.webp",imgSolving:"assets/stage1_m02_solving.webp",imgSolved:"assets/stage1_m02_solved.webp",
+     storyBefore:"지구의 탄생 초기, 거대한 바다가 생겨나며 생명이 태어났어. 산소 에너지를 복구하려면 이 데이터가 필요해!",
+     storySolved:"산소 복구 완료! 하지만 태양풍의 열기가 너무 뜨거워. 지구의 코어 에너지가 필요해!"},
+    {id:3,type:"choice",
+     q:"지구 가장 깊은 곳, 철과 니켈이 녹아 출렁거리는 이곳은?",
+     opts:["지각","맨틀","외핵","내핵"],ans:2,
+     hint:"너무 뜨거워서 금속이 '액체' 상태인 곳이야.",
+     log:"코어 베리어 가동",
+     imgBefore:"assets/stage1_m03_before.webp",imgSolving:"assets/stage1_m03_solving.webp",imgSolved:"assets/stage1_m03_solved.webp",
+     storyBefore:"지구의 엔진인 코어를 안정화해야 해. 액체 상태로 출렁거리며 자기장을 만드는 그곳의 이름은?",
+     storySolved:"코어 보호 성공! 이제 지구의 단짝인 달의 중력 엔진을 켜야 해. 충돌 데이터를 찾아줘!"},
+    {id:4,type:"text",
+     q:"지구가 마그마로 끓고 있을 때, 충돌한 행성의 이름은?",
+     ans:"테이아",
+     hint:"1전시실 계단 아래 게시글을 찾아봐. 'ㅌㅇ아'",
+     log:"중력 엔진 · 달 동기화",
+     imgBefore:"assets/stage1_m04_before.webp",imgSolving:"assets/stage1_m04_solving.webp",imgSolved:"assets/stage1_m04_solved.webp",
+     storyBefore:"거대한 행성이 지구와 충돌하며 달이 만들어졌어. 그 행성의 이름을 입력해 중력 동기화를 완료하자!",
+     storySolved:"1전시실 완료! 이제 방어막을 쏠 정확한 우주 좌표가 필요해. 수호자의 암호를 풀어봐!"}
+  ]},
+  {name:"2전시실 · 별과 우주",missions:[
+    {id:5,type:"choice",
+     q:"12월에 태어난 친구들을 지켜주는 별자리는?",
+     opts:["전갈자리","궁수자리","물병자리","사자자리"],ans:1,
+     hint:"상체는 사람, 하체는 말인 켄타우로스야.",
+     log:"우주 좌표 매핑",
+     imgBefore:"assets/stage2_m05_before.webp",imgSolving:"assets/stage2_m05_solving.webp",imgSolved:"assets/stage2_m05_solved.webp",
+     storyBefore:"정확한 우주 좌표가 필요해. 수호자의 암호 별자리를 찾아 좌표를 매핑하자!",
+     storySolved:"좌표 확보! 하지만 초점이 안 맞아. 망원경의 원리로 조준점을 선명하게 맞춰야 해!"},
+    {id:6,type:"choice",
+     q:"갈릴레이 망원경의 좁은 시야를 넓혀준 망원경은?",
+     opts:["반사 망원경","케플러식","뉴턴식","전파 망원경"],ans:1,
+     hint:"망원경 발달사 전시물을 확인해.",
+     log:"시야 보정 · 렌즈 정렬",
+     imgBefore:"assets/stage2_m06_before.webp",imgSolving:"assets/stage2_m06_solving.webp",imgSolved:"assets/stage2_m06_solved.webp",
+     storyBefore:"오메가 베리어 조준점이 흐릿해. 케플러식 망원경의 원리로 시야를 선명하게 교정하자!",
+     storySolved:"조준 완료! 이제 강력한 에너지를 쏠 회전 동력이 필요해. 행성의 회전 힘을 빌려오자!"},
+    {id:7,type:"text",
+     q:"태양계에서 가장 빠르게 돌아서 하루가 짧은 행성은?",
+     ans:"목성",
+     hint:"자전 주기가 가장 짧은 행성이야. 'ㅁ성'",
+     log:"행성 자전 동력 확보",
+     imgBefore:"assets/stage2_m07_before.webp",imgSolving:"assets/stage2_m07_solving.webp",imgSolved:"assets/stage2_m07_solved.webp",
+     storyBefore:"엄청난 회전 에너지가 필요해. 태양계에서 가장 빨리 회전하는 거대 행성의 힘을 동기화하자!",
+     storySolved:"동력 충전 완료! 마지막 코어를 켜러 가야 해. 달의 험난한 지형을 이동할 데이터를 가져와!"}
+  ]},
+  {name:"3전시실 · 최종 방어",missions:[
+    {id:8,type:"choice",
+     q:"달에서 활동 반경을 넓혀준 '달의 자동차'는?",
+     opts:["월면차","화성인","우주셔틀","탐사선"],ans:0,
+     hint:"달 탐사 장비 모형 앞을 봐.",
+     log:"달 지형 이동 데이터",
+     imgBefore:"assets/stage3_m08_before.webp",imgSolving:"assets/stage3_m08_solving.webp",imgSolved:"assets/stage3_m08_solved.webp",
+     storyBefore:"마지막 제어 센터에 도달하려면 달의 험난한 지형을 돌파해야 해. 이동 데이터를 전송해!",
+     storySolved:"3전시실 도착! 에너지가 불안정해. 별의 밝기 측정 데이터로 시스템을 안정화하자!"},
+    {id:9,type:"choice",
+     q:"별의 밝기에 처음으로 번호를 매긴 사람은?",
+     opts:["뉴턴","갈릴레이","히파르코스","아인슈타인"],ans:2,
+     hint:"별의 밝기 설명 패널을 읽어봐.",
+     log:"시스템 파동 안정화",
+     imgBefore:"assets/stage3_m09_before.webp",imgSolving:"assets/stage3_m09_solving.webp",imgSolved:"assets/stage3_m09_solved.webp",
+     storyBefore:"에너지가 요동치고 있어! 별의 등급을 처음으로 나눈 천문학자의 데이터로 파동을 일정하게 유지하자.",
+     storySolved:"안정화 성공! 마지막이야! 별의 황금기 에너지를 뽑아내서 최종 방어막을 가동하자!"},
+    {id:10,type:"text",
+     q:"별이 에너지를 만드는 가장 안정적인 '황금기' 단계는?",
+     ans:"주계열",
+     hint:"별의 일생 전시물을 확인해. 'ㅈ계열'",
+     log:"최종 오메가 베리어 가동",
+     imgBefore:"assets/stage3_m10_before.webp",imgSolving:"assets/stage3_m10_solving.webp",imgSolved:"assets/stage3_m10_solved.webp",
+     storyBefore:"태양풍을 막을 수 있는 유일한 에너지는 별이 가장 밝고 안정적으로 타오르는 이 시기의 에너지야!",
+     storySolved:"방어막 가동 성공! 태양풍을 막아냈어. 우리가 지구를 지켰어!"}
+  ]}
+]};
 
-            checkTextAnswer() {
-                const input = document.getElementById('mission-input');
-                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
-                const val = input.value.trim().replace(/\s/g, "").toLowerCase();
-                const target = m.ans.replace(/\s/g, "").toLowerCase();
-                if(val === target) {
-                    input.style.borderColor = "#00E676"; this.handleAnswer(true);
-                } else {
-                    input.style.borderColor = "#FF4B2B"; this.triggerHardcoreReset();
-                }
-            },
+/* ═══════════════════════════════════════════════
+   STARFIELD
+═══════════════════════════════════════════════ */
+const Starfield = (() => {
+  let cvs, ctx, stars=[], raf;
 
-            triggerHardcoreReset() {
-                const overlay = document.getElementById('restart-overlay');
-                overlay.style.display = 'flex';
-                let count = 3;
-                document.getElementById('restart-countdown').innerText = count;
-                const timer = setInterval(() => {
-                    count--;
-                    document.getElementById('restart-countdown').innerText = count;
-                    if(count <= 0) { clearInterval(timer); overlay.style.display = 'none'; this.resetToStart(); }
-                }, 1000);
-            },
+  function resize(){
+    cvs.width  = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
+  }
+  function seed(){
+    stars = Array.from({length:140},()=>({
+      x: Math.random(),
+      y: Math.random(),
+      r: Math.random()*1.3+0.25,
+      speed: Math.random()*0.00014+0.00003,
+      a: Math.random()*0.55+0.3,
+      phase: Math.random()*Math.PI*2
+    }));
+  }
+  function tick(){
+    const {width:W,height:H} = cvs;
+    const t = Date.now()*0.001;
+    ctx.clearRect(0,0,W,H);
+    for(const s of stars){
+      s.y += s.speed;
+      if(s.y>1){s.y=0;s.x=Math.random();}
+      const a = s.a*(0.65+0.35*Math.sin(t*1.1+s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(2)})`;
+      ctx.fill();
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  return {
+    init(){
+      cvs = document.getElementById('starfield');
+      ctx = cvs.getContext('2d');
+      resize(); seed(); tick();
+      window.addEventListener('resize', resize);
+    }
+  };
+})();
 
-            resetToStart() {
-                this.state.stage = 0; this.state.mission = 0; this.state.subStep = "before";
-                this.state.attempts++; this.save(); this.render();
-            },
+/* ═══════════════════════════════════════════════
+   AUDIO  (Web Audio — zero external files)
+═══════════════════════════════════════════════ */
+const Sfx = (() => {
+  let ac;
+  function ctx(){ return ac||(ac=new(window.AudioContext||window.webkitAudioContext)()); }
+  function tone(f,type,dur,vol=0.22){
+    try{
+      const a=ctx(), o=a.createOscillator(), g=a.createGain();
+      o.connect(g); g.connect(a.destination);
+      o.type=type; o.frequency.value=f;
+      g.gain.setValueAtTime(vol,a.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+      o.start(); o.stop(a.currentTime+dur);
+    }catch{}
+  }
+  return {
+    tap()    { tone(900,'sine',.06,.1); },
+    correct(){ tone(523,'sine',.1,.2); setTimeout(()=>tone(784,'sine',.18,.2),110); },
+    wrong()  { tone(160,'sawtooth',.28,.28); },
+    fanfare(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,'sine',.15,.18),i*110)); }
+  };
+})();
 
-            next() {
-                const s = DATABASE.stages[this.state.stage];
-                this.state.mission++; this.state.subStep = "before";
-                if(this.state.mission >= s.missions.length) {
-                    this.state.stage++; this.state.mission = 0;
-                    if(this.state.stage >= DATABASE.stages.length) return this.end();
-                }
-                this.save(); this.render();
-            },
+/* ═══════════════════════════════════════════════
+   IMAGE  (graceful fallback per stage)
+═══════════════════════════════════════════════ */
+const FALLBACK = [
+  'linear-gradient(135deg,#06062a 0%,#0d1a3a 100%)',
+  'linear-gradient(135deg,#071a10 0%,#06062a 100%)',
+  'linear-gradient(135deg,#06062a 0%,#120640 100%)',
+  'linear-gradient(135deg,#12060d 0%,#06062a 100%)',
+];
+function setBg(el, url, si=0){
+  if(!url){ el.style.backgroundImage=FALLBACK[si]||FALLBACK[0]; return; }
+  const img=new Image();
+  img.onload  = ()=>{ el.style.backgroundImage=`url(${url})`; };
+  img.onerror = ()=>{ el.style.backgroundImage=FALLBACK[si]||FALLBACK[0]; };
+  img.src=url;
+}
 
-            showScreen(id) {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-            },
+/* ═══════════════════════════════════════════════
+   TYPEWRITER
+═══════════════════════════════════════════════ */
+function typewrite(el, text, speed=26, done){
+  el.textContent='';
+  let i=0;
+  (function step(){ i<text.length ? (el.textContent+=text[i++], setTimeout(step,speed)) : done&&done(); })();
+}
 
-            startTimer() {
-                if(this.timer) clearInterval(this.timer);
-                this.timer = setInterval(() => {
-                    const diff = Date.now() - this.state.startTime;
-                    const min = Math.floor(diff / 60000);
-                    const sec = Math.floor((diff % 60000) / 1000);
-                    document.getElementById('hud-timer').innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-                }, 1000);
-            },
+/* ═══════════════════════════════════════════════
+   UI
+═══════════════════════════════════════════════ */
+const UI = {
+  show(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  },
+  openOv(id) { document.getElementById(id).classList.add('open'); },
+  closeOv(id){ document.getElementById(id).classList.remove('open'); },
+  showHUD()  { document.getElementById('hud').style.display='flex'; },
+  hideHUD()  { document.getElementById('hud').style.display='none'; },
+  setProgress(done,total){
+    const pct=Math.floor(done/total*100);
+    document.getElementById('hud-bar').style.width=pct+'%';
+    document.getElementById('hud-pct').textContent=pct;
+  }
+};
 
-            showHint() {
-                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
-                document.getElementById('hint-text').innerText = m.hint;
-                document.getElementById('modal-hint').style.display = "flex";
-                this.state.hints++; this.save();
-            },
+/* ═══════════════════════════════════════════════
+   GAME
+═══════════════════════════════════════════════ */
+const Game = (()=>{
+  const KEY   = 'dogi_v3';
+  const TOTAL = 10;
+  let S, tick, pending;
 
-            closeModal() { document.getElementById('modal-hint').style.display = "none"; },
+  /* helpers */
+  const m = ()=>DB.stages[S.si].missions[S.mi];
+  const save = ()=>localStorage.setItem(KEY,JSON.stringify(S));
+  const nuke = ()=>localStorage.removeItem(KEY);
+  function elapsed(){ return Date.now()-S.t0; }
+  function fmtTime(ms){
+    const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000);
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  function totalDone(){
+    let n=0;
+    for(let i=0;i<S.si;i++) n+=DB.stages[i].missions.length;
+    return n+S.mi;
+  }
 
-            updateProgress() {
-                const totalMissions = 10;
-                let done = 0;
-                for(let i=0; i<this.state.stage; i++) done += DATABASE.stages[i].missions.length;
-                done += this.state.mission;
-                const pct = Math.floor((done / totalMissions) * 100);
-                document.getElementById('progress-val').innerText = pct;
-                document.getElementById('hud-progress-bar').style.width = pct + "%";
-            },
+  /* timer */
+  function startTick(){
+    if(tick) clearInterval(tick);
+    tick=setInterval(()=>{
+      document.getElementById('hud-timer').textContent=fmtTime(elapsed());
+    },1000);
+  }
 
-            save() { localStorage.setItem('Dogi_save_hardcore', JSON.stringify(this.state)); },
+  /* ── story ── */
+  function showStory(text,img,cb){
+    const scene=document.getElementById('story-scene');
+    setBg(scene,img,S.si);
+    document.getElementById('story-stage').textContent=DB.stages[S.si].name;
+    const el=document.getElementById('story-text');
+    let done=false;
 
-            end() {
-                clearInterval(this.timer); localStorage.removeItem('Dogi_save_hardcore');
-                document.getElementById('hud-top').style.display = "none";
-                const diff = Date.now() - this.state.startTime;
-                const min = Math.floor(diff / 60000); const sec = Math.floor((diff % 60000) / 1000);
-                document.getElementById('res-nick').innerText = this.state.nick;
-                document.getElementById('res-time').innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-                document.getElementById('res-hints').innerText = this.state.hints;
-                document.getElementById('res-attempts').innerText = this.state.attempts;
-                this.showScreen('screen-ending');
-            }
-        };
+    function proceed(){
+      if(!done){ el.textContent=text; done=true; }
+      else cb();
+    }
+    document.getElementById('screen-story').onclick=proceed;
+    typewrite(el,text,26,()=>{ done=true; });
+    UI.show('screen-story');
+    Sfx.tap();
+  }
 
-        window.onload = () => Game.init();
-    </script>
+  /* ── quiz ── */
+  function showQuiz(ms){
+    setBg(document.getElementById('mission-scene'),ms.imgSolving,S.si);
+    document.getElementById('m-badge').textContent='M'+String(ms.id).padStart(2,'0');
+    document.getElementById('m-title').textContent=ms.log;
+    document.getElementById('mission-q').textContent=ms.q;
+
+    const ca=document.getElementById('choice-area');
+    const ta=document.getElementById('text-area');
+    const sub=document.getElementById('btn-submit');
+    const inp=document.getElementById('m-input');
+
+    if(ms.type==='choice'){
+      ca.style.display='flex'; ta.style.display='none'; sub.style.display='none';
+      ca.innerHTML=''; delete ca.dataset.locked;
+      ms.opts.forEach((opt,i)=>{
+        const b=document.createElement('button');
+        b.className='opt';
+        b.innerHTML=`<span class="opt-n">${i+1}</span><span>${opt}</span>`;
+        b.addEventListener('click',()=>{
+          if(ca.dataset.locked) return;
+          ca.dataset.locked='1'; Sfx.tap();
+          confirm_(opt,()=>resolve(i===ms.ans,b),()=>{ delete ca.dataset.locked; });
+        });
+        ca.appendChild(b);
+      });
+    } else {
+      ca.style.display='none'; ta.style.display='flex'; sub.style.display='block';
+      inp.value=''; inp.className='field';
+
+      const submit=()=>{
+        const v=inp.value.trim(); if(!v) return;
+        Sfx.tap();
+        confirm_(v,()=>{
+          const ok=v.replace(/\s/g,'').toLowerCase()===ms.ans.replace(/\s/g,'').toLowerCase();
+          inp.className='field '+(ok?'ok':'bad');
+          resolve(ok);
+        },()=>{});
+      };
+      sub.onclick=submit;
+      inp.onkeydown=e=>{ if(e.key==='Enter') submit(); };
+    }
+
+    UI.setProgress(totalDone(),TOTAL);
+    save();
+    UI.show('screen-mission');
+  }
+
+  /* ── confirm overlay ── */
+  function confirm_(ansText,onOk,onCancel){
+    document.getElementById('confirm-ans').textContent=ansText;
+    UI.openOv('ov-confirm');
+    pending={onOk,onCancel};
+  }
+
+  /* ── resolve answer ── */
+  function resolve(correct,btn){
+    UI.closeOv('ov-confirm');
+    if(correct){
+      if(btn) btn.classList.add('correct');
+      Sfx.correct();
+      /* ripple effect on correct */
+      if(btn){
+        const r=document.createElement('div');
+        r.className='ripple-el';
+        r.style.cssText='position:absolute;width:80px;height:80px;border-radius:50%;background:var(--success);pointer-events:none;animation:ripple .6s ease-out forwards;top:50%;left:50%;transform:translate(-50%,-50%)scale(0);opacity:.5;';
+        btn.appendChild(r);
+        setTimeout(()=>r.remove(),700);
+      }
+      setTimeout(()=>{ S.step='solved'; save(); render(); },700);
+    } else {
+      if(btn) btn.classList.add('wrong');
+      Sfx.wrong();
+      hardcoreReset();
+    }
+  }
+
+  /* ── hardcore reset ── */
+  function hardcoreReset(){
+    UI.openOv('ov-restart');
+    let n=3;
+    document.getElementById('restart-count').textContent=n;
+    const t=setInterval(()=>{
+      document.getElementById('restart-count').textContent=--n;
+      if(n<=0){
+        clearInterval(t); UI.closeOv('ov-restart');
+        S.si=0; S.mi=0; S.step='before'; S.attempts++; save(); render();
+      }
+    },1000);
+  }
+
+  /* ── advance ── */
+  function advance(){
+    S.mi++; S.step='before';
+    if(S.mi>=DB.stages[S.si].missions.length){
+      S.si++; S.mi=0;
+      if(S.si>=DB.stages.length){ end(); return; }
+      Sfx.fanfare();
+    }
+    save(); render();
+  }
+
+  /* ── render ── */
+  function render(){
+    const ms=m();
+    if(S.step==='before')  showStory(ms.storyBefore,ms.imgBefore,()=>{ S.step='quiz'; save(); render(); });
+    else if(S.step==='quiz') showQuiz(ms);
+    else if(S.step==='solved') showStory(ms.storySolved,ms.imgSolved,()=>advance());
+  }
+
+  /* ── ending ── */
+  function end(){
+    clearInterval(tick); nuke(); UI.hideHUD();
+    const ms=elapsed(), mins=Math.floor(ms/60000);
+    let grade,msg,color;
+    if(mins<10 && S.hints===0 && S.attempts===1){
+      grade='S'; color='#FFD700'; msg='완벽한 수호! 힌트 없이 단번에 클리어. 진정한 도기 탐정입니다!';
+    } else if(mins<15 && S.hints<=1 && S.attempts<=2){
+      grade='A'; color='#00F2FE'; msg='훌륭한 수호! 빠르고 정확하게 임무를 완수했습니다.';
+    } else if(mins<25 && S.attempts<=4){
+      grade='B'; color='#00E676'; msg='성공적인 수호! 지구는 안전합니다. 다음엔 더 빠르게!';
+    } else {
+      grade='C'; color='#FF9800'; msg='임무 완수! 포기하지 않는 탐정 정신이 지구를 구했습니다.';
+    }
+    const ring=document.getElementById('grade-ring');
+    const gl=document.getElementById('grade-letter');
+    ring.style.borderColor=color;
+    ring.style.boxShadow=`0 0 40px ${color}44,inset 0 0 40px ${color}11`;
+    gl.textContent=grade;
+    gl.style.backgroundImage=`linear-gradient(135deg,#fff,${color})`;
+    document.getElementById('res-nick').textContent=S.nick;
+    document.getElementById('res-time').textContent=fmtTime(ms);
+    document.getElementById('res-hints').textContent=S.hints;
+    document.getElementById('res-attempts').textContent=S.attempts+'회';
+    document.getElementById('grade-msg').textContent=msg;
+    UI.show('screen-ending');
+    Sfx.fanfare();
+  }
+
+  /* ── public ── */
+  return {
+    init(){
+      Starfield.init();
+
+      /* start button */
+      document.getElementById('btn-start').addEventListener('click',()=>{
+        const nick=document.getElementById('nick').value.trim();
+        if(!nick){ document.getElementById('nick').focus(); return; }
+        Sfx.tap();
+        S={nick,si:0,mi:0,step:'before',t0:Date.now(),hints:0,attempts:1};
+        save(); UI.showHUD(); startTick(); render();
+      });
+      document.getElementById('nick').addEventListener('keydown',e=>{
+        if(e.key==='Enter') document.getElementById('btn-start').click();
+      });
+
+      /* hint */
+      document.getElementById('btn-hint').addEventListener('click',()=>{
+        if(!S) return; Sfx.tap();
+        document.getElementById('hint-text').textContent=m().hint;
+        S.hints++; save(); UI.openOv('ov-hint');
+      });
+      document.getElementById('btn-hint-close').addEventListener('click',()=>UI.closeOv('ov-hint'));
+
+      /* confirm overlay */
+      document.getElementById('btn-ok').addEventListener('click',()=>{
+        if(pending){ const p=pending; pending=null; p.onOk(); }
+      });
+      document.getElementById('btn-cancel').addEventListener('click',()=>{
+        UI.closeOv('ov-confirm');
+        if(pending){ const p=pending; pending=null; p.onCancel(); }
+      });
+
+      /* restart */
+      document.getElementById('btn-restart').addEventListener('click',()=>location.reload());
+
+      /* resume save? */
+      const raw=localStorage.getItem(KEY);
+      if(raw){
+        try{
+          const d=JSON.parse(raw);
+          if(confirm(`${d.nick} 탐정님, 이전 기록이 있습니다. 이어하시겠습니까?`)){
+            S=d; UI.showHUD(); startTick(); render(); return;
+          }
+        }catch{ localStorage.removeItem(KEY); }
+      }
+    }
+  };
+})();
+
+window.addEventListener('load',()=>Game.init());
+</script>
 </body>
 </html>
