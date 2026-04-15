@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>도기탐정: 태양풍 방어 - 하드코어 에디션</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00F2FE;
+            --secondary: #FFD700;
+            --accent: #FF0055;
+            --bg-dark: #0A0A1A;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --danger: #FF4B2B;
+            --success: #00E676;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+        }
+
+        body, html {
+            width: 100%; height: 100%;
+            background: var(--bg-dark);
+            color: #fff;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        #app {
+            width: 100%; height: 100%;
+            max-width: 480px; margin: 0 auto;
+            position: relative;
+            background: #000;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* Screens */
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .screen.active { display: flex; animation: fadeIn 0.5s ease forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* HUD */
+        #hud-top {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px;
+            height: 60px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 0 15px;
+        }
+
+        .hud-item { display: flex; flex-direction: column; align-items: center; }
+        .hud-label { font-size: 10px; color: var(--primary); text-transform: uppercase; font-weight: bold; }
+        .hud-val { font-size: 18px; font-weight: bold; font-variant-numeric: tabular-nums; }
+
+        #progress-container { flex: 1; margin: 0 15px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative; }
+        #hud-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: width 0.3s ease; }
+
+        /* Glass Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+        }
+
+        /* Hardcore Warning */
+        .hardcore-warning {
+            background: rgba(255, 0, 85, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 85, 0.3);
+            font-size: 12px;
+            color: #ff99aa;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(255,0,85,0.3); }
+            50% { border-color: rgba(255,0,85,0.8); }
+            100% { border-color: rgba(255,0,85,0.3); }
+        }
+
+        /* UI Elements */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #00A8FF);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .option-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn.correct { background: var(--success); color: #000; border-color: var(--success); }
+        .option-btn.wrong { background: var(--danger); border-color: var(--danger); animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Intro/Story Layout */
+        #screen-intro { justify-content: center; }
+        .logo-area { text-align: center; margin-bottom: 40px; }
+        .logo-title { font-size: 42px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(to bottom, #fff, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-sub { font-size: 14px; letter-spacing: 5px; color: var(--secondary); margin-top: -5px; }
+
+        /* Story Card Layout */
+        .story-container {
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        .dogi-talk {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        /* Restart Notification */
+        #restart-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column; width: 100%;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            text-align: center;
+        }
+        #restart-overlay h2 { font-size: 32px; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px #000; }
+
+        /* Ending Screen */
+        .ending-stats {
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-box .v { font-size: 24px; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- HUD -->
+        <div id="hud-top">
+            <div class="hud-item">
+                <span class="hud-label">Time</span>
+                <span id="hud-timer" class="hud-val">00:00</span>
+            </div>
+            <div id="progress-container">
+                <div id="hud-progress-bar"></div>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">Progress</span>
+                <span class="hud-val"><span id="progress-val">0</span>%</span>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="screen-intro" class="screen active" style="background-image: url('assets/intro_bg.webp');">
+            <div class="logo-area">
+                <h1 class="logo-title">DOGI</h1>
+                <p class="logo-sub">SOLAR WIND DEFENSE</p>
+            </div>
+            <div class="glass-card">
+                <input type="text" id="nickname-input" placeholder="도기 탐정의 이름(닉네임)" maxlength="10">
+                <button class="btn" onclick="Game.initGame()">프로젝트 가동</button>
+                <p style="text-align: center; font-size: 12px; opacity: 0.6; margin-top: 15px;">※ 주의: 오답 시 처음부터 다시 시작합니다.</p>
+            </div>
+        </div>
+
+        <!-- Story/Narrative Card Screen -->
+        <div id="screen-story" class="screen">
+            <div class="story-container">
+                <div class="glass-card">
+                    <div id="story-label" style="font-size: 12px; color: var(--secondary); font-weight: bold; margin-bottom: 5px;">STORY LOG</div>
+                    <div id="story-text" class="dogi-talk">...</div>
+                    <button id="story-next-btn" class="btn">계속하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mission/Quiz Screen -->
+        <div id="screen-mission" class="screen">
+            <div class="hardcore-warning">⚠ 경고: 오답 시 시스템 리셋 - 처음부터 다시 시도해야 합니다.</div>
+            <div class="glass-card" style="margin-bottom: auto;">
+                <div id="mission-log" style="font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 10px;">MISSION LOG</div>
+                <div id="mission-q" style="font-size: 18px; font-weight: bold; line-height: 1.4;">...</div>
+            </div>
+            <div id="choice-area" style="display: none; margin-top: 20px;"></div>
+            <div id="text-area" style="display: none; margin-top: 20px; flex-direction: column;">
+                <input type="text" id="mission-input" placeholder="정답을 입력하세요">
+                <button class="btn" onclick="Game.checkTextAnswer()">데이터 송신</button>
+            </div>
+            <button class="btn" onclick="Game.showHint()" style="background: var(--glass-bg); color: #fff; margin-top: 10px; border: 1px solid var(--glass-border); font-size: 14px; box-shadow: none;">도움말(힌트)</button>
+        </div>
+
+        <!-- Ending Screen -->
+        <div id="screen-ending" class="screen">
+            <div class="glass-card" style="margin-top: 100px; text-align: center;">
+                <h2 style="font-size: 32px; color: var(--secondary); margin-bottom: 10px;">지구 수호 완료!</h2>
+                <p><span id="res-nick" style="color:var(--primary); font-weight: bold;"></span> 탐정님, 수고하셨습니다.</p>
+                <div class="ending-stats">
+                    <div class="stat-box">
+                        <div class="hud-label">소요 시간</div>
+                        <div id="res-time" class="v">00:00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="hud-label">힌트 사용</div>
+                        <div id="res-hints" class="v">0</div>
+                    </div>
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <div class="hud-label">총 시도 횟수</div>
+                        <div id="res-attempts" class="v">0</div>
+                    </div>
+                </div>
+                <button class="btn" onclick="location.reload()">새로운 임무 시작</button>
+            </div>
+        </div>
+
+        <!-- Restart Overlay -->
+        <div id="restart-overlay">
+            <div style="font-size: 80px;">❌</div>
+            <h2>시스템 오류 발생</h2>
+            <p>보안 규정에 따라 처음부터 다시 시작합니다.</p>
+            <div id="restart-countdown" style="font-size: 40px; font-weight: bold; margin-top: 20px; color: var(--secondary);">3</div>
+        </div>
+
+        <!-- Hint Modal -->
+        <div id="modal-hint" style="position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; justify-content:center; align-items:center; z-index:200;">
+            <div class="glass-card" style="margin: 30px;">
+                <h3 style="margin-bottom: 15px; color: var(--secondary);">🔍 도기 탐정의 힌트</h3>
+                <p id="hint-text" style="line-height: 1.6;">...</p>
+                <button class="btn" onclick="Game.closeModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DATABASE = {
+            stages: [
+                {
+                    name: "Intro & Lobby",
+                    missions: [
+                        {
+                            id: 1, type: "text", q: "ISS는 하루에 우리 지구를 몇 번 돌까요? (숫자 4자리 입력)", ans: "15.78",
+                            hint: "로비 보안 패널 숫자를 확인해! (15.78)",
+                            narrationBefore: "긴급 상황! 강력한 태양풍이 관측됐어. 지구 방어막 '오메가 베리어'를 켜야 해! 우선 ISS 데이터를 동기화하자.",
+                            narrationSolved: "로그인 성공! 하지만 방어막 연료인 산소 에너지가 부족해. 지구의 탄생 데이터를 분석하러 가자!",
+                            imgBefore: "assets/intro_bg.webp", imgSolving: "assets/lobby_iss.webp", imgSolved: "assets/pouri_intro.webp",
+                            log: "시스템 로그인 및 ISS 동기화"
+                        }
+                    ]
+                },
+                {
+                    name: "1전시실: 지구 이야기",
+                    missions: [
+                        {
+                            id: 2, type: "choice", q: "뜨거운 열기를 식혀주고 생명이 태어날 수 있게 해준 이것은?", opts: ["빙하", "바다", "대기", "화산"], ans: 1,
+                            hint: "하늘에서 내린 비가 모여 만들어졌어요.",
+                            narrationBefore: "지구의 탄생 초기, 거대한 바다가 생겨나며 생명이 태어났어. 산소 에너지를 복구하려면 이 데이터가 필요해!",
+                            narrationSolved: "산소 복구 완료! 하지만 태양풍의 열기가 너무 뜨거워. 지구의 코어 에너지가 필요해!",
+                            imgBefore: "assets/stage1_m02_before.webp", imgSolving: "assets/stage1_m02_solving.webp", imgSolved: "assets/stage1_m02_solved.webp",
+                            log: "산소 시스템 복구 데이터 분석"
+                        },
+                        {
+                            id: 3, type: "choice", q: "지구 가장 깊은 곳, 철과 니켈이 녹아 출렁거리는 이곳은?", opts: ["지각", "맨틀", "외핵", "내핵"], ans: 2,
+                            hint: "너무 뜨거워서 금속이 '액체' 상태인 곳이야.",
+                            narrationBefore: "지구의 엔진인 코어를 안정화해야 해. 액체 상태로 출렁거리며 자기장을 만드는 그곳의 이름은?",
+                            narrationSolved: "코어 보호 성공! 이제 지구의 단짝인 달의 중력 엔진을 켜야 해. 충돌 데이터를 찾아줘!",
+                            imgBefore: "assets/stage1_m03_before.webp", imgSolving: "assets/stage1_m03_solving.webp", imgSolved: "assets/stage1_m03_solved.webp",
+                            log: "코어 베리어 가동 프로젝트"
+                        },
+                        {
+                            id: 4, type: "text", q: "지구가 마그마로 끓고 있을 때, 충돌한 행성의 이름은?", ans: "테이아",
+                            hint: "1전시실 계단 아래 게시글을 찾아봐. 'ㅌㅇ아'",
+                            narrationBefore: "거대한 행성이 지구와 충돌하며 달이 만들어졌어. 그 행성의 이름을 입력해 중력 동기화를 완료하자!",
+                            narrationSolved: "1전시실 완료! 이제 방어막을 쏠 정확한 우주 좌표가 필요해. 수호자의 암호를 풀어봐!",
+                            imgBefore: "assets/stage1_m04_before.webp", imgSolving: "assets/stage1_m04_solving.webp", imgSolved: "assets/stage1_m04_solved.webp",
+                            log: "중력 엔진 가동 및 달 동기화"
+                        }
+                    ]
+                },
+                {
+                    name: "2전시실: 별과 우주",
+                    missions: [
+                        {
+                            id: 5, type: "choice", q: "12월에 태어난 친구들을 지켜주는 별자리는?", opts: ["전갈자리", "궁수자리", "물병자리", "사자자리"], ans: 1,
+                            hint: "상체는 사람, 하체는 말인 켄타우로스야.",
+                            narrationBefore: "정확한 우주 좌표가 필요해. 수호자의 암호 별자리를 찾아 좌표를 매핑하자!",
+                            narrationSolved: "좌표 확보! 하지만 초점이 안 맞아. 망원경의 원리로 조준점을 선명하게 맞춰야 해!",
+                            imgBefore: "assets/stage2_m05_before.webp", imgSolving: "assets/stage2_m05_solving.webp", imgSolved: "assets/stage2_m05_solved.webp",
+                            log: "우주 좌표 매핑"
+                        },
+                        {
+                            id: 6, type: "choice", q: "갈릴레이 망원경의 좁은 시야를 넓혀준 망원경은?", opts: ["반사 망원경", "케플러식", "뉴턴식", "전파 망원경"], ans: 1,
+                            hint: "망원경 발달사 전시물을 확인해.",
+                            narrationBefore: "오메가 베리어 조준점이 흐릿해. 케플러식 망원경의 원리로 시야를 선명하게 교정하자!",
+                            narrationSolved: "조준 완료! 이제 강력한 에너지를 쏠 회전 동력이 필요해. 행성의 회전 힘을 빌려오자!",
+                            imgBefore: "assets/stage2_m06_before.webp", imgSolving: "assets/stage2_m06_solving.webp", imgSolved: "assets/stage2_m06_solved.webp",
+                            log: "시야 보정 및 렌즈 정렬"
+                        },
+                        {
+                            id: 7, type: "text", q: "태양계에서 가장 빠르게 돌아서 하루가 짧은 행성은?", ans: "목성",
+                            hint: "자전 주기가 가장 짧은 행성이야. 'ㅁ성'",
+                            narrationBefore: "엄청난 회전 에너지가 필요해. 태양계에서 가장 빨리 회전하는 거대 행성의 힘을 동기화하자!",
+                            narrationSolved: "동력 충전 완료! 마지막 코어를 켜러 가야 해. 달의 험난한 지형을 이동할 데이터를 가져와!",
+                            imgBefore: "assets/stage2_m07_before.webp", imgSolving: "assets/stage2_m07_solving.webp", imgSolved: "assets/stage2_m07_solved.webp",
+                            log: "행성 자전 동력 확보"
+                        }
+                    ]
+                },
+                {
+                    name: "3전시실: 최종 방어",
+                    missions: [
+                        {
+                            id: 8, type: "choice", q: "달에서 활동 반경을 넓혀준 '달의 자동차'는?", opts: ["월면차", "화성인", "우주셔틀", "탐사선"], ans: 0,
+                            hint: "달 탐사 장비 모형 앞을 봐.",
+                            narrationBefore: "마지막 제어 센터에 도달하려면 달의 험난한 지형을 돌파해야 해. 이동 데이터를 전송해!",
+                            narrationSolved: "3전시실 도착! 에너지가 불안정해. 별의 밝기 측정 데이터로 시스템을 안정화하자!",
+                            imgBefore: "assets/stage3_m08_before.webp", imgSolving: "assets/stage3_m08_solving.webp", imgSolved: "assets/stage3_m08_solved.webp",
+                            log: "달 지형 이동 데이터 분석"
+                        },
+                        {
+                            id: 9, type: "choice", q: "별의 밝기에 처음으로 번호를 매긴 사람은?", opts: ["뉴턴", "갈릴레이", "히파르코스", "아인슈타인"], ans: 2,
+                            hint: "별의 밝기 설명 패널을 읽어봐.",
+                            narrationBefore: "에너지가 요동치고 있어! 별의 등급을 처음으로 나눈 천문학자의 데이터로 파동을 일정하게 유지하자.",
+                            narrationSolved: "안정화 성공! 마지막이야! 별의 황금기 에너지를 뽑아내서 최종 방어막을 가동하자!",
+                            imgBefore: "assets/stage3_m09_before.webp", imgSolving: "assets/stage3_m09_solving.webp", imgSolved: "assets/stage3_m09_solved.webp",
+                            log: "시스템 파동 안정화"
+                        },
+                        {
+                            id: 10, type: "text", q: "별이 에너지를 만드는 가장 안정적인 '황금기' 단계는?", ans: "주계열",
+                            hint: "별의 일생 전시물을 확인해. 'ㅈ계열'",
+                            narrationBefore: "태양풍을 막을 수 있는 유일한 에너지는 별이 가장 밝고 안정적으로 타오르는 이 시기의 에너지야!",
+                            narrationSolved: "방어막 가동 성공! 태양풍을 막아냈어. 우리가 지구를 지켰어!",
+                            imgBefore: "assets/stage3_m10_before.webp", imgSolving: "assets/stage3_m10_solving.webp", imgSolved: "assets/stage3_m10_solved.webp",
+                            log: "최종 오메가 베리어 가동"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const Game = {
+            state: { nick: "", stage: 0, mission: 0, subStep: "before", startTime: 0, hints: 0, attempts: 1 },
+            timer: null,
+
+            init() {
+                const saved = localStorage.getItem('Dogi_save_hardcore');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if(confirm(`${data.nick} 탐정님, 이전 기록이 있습니다. 이어하시겠습니까?`)) {
+                            this.state = data;
+                            this.resumeGame();
+                            return;
+                        }
+                    } catch(e) { localStorage.removeItem('Dogi_save_hardcore'); }
+                }
+            },
+
+            initGame() {
+                const val = document.getElementById('nickname-input').value.trim();
+                if(!val) return alert("도기 탐정의 이름을 입력해주세요!");
+                this.state.nick = val;
+                this.state.startTime = Date.now();
+                this.state.stage = 0; this.state.mission = 0; this.state.subStep = "before";
+                this.save(); this.showHUD(); this.startTimer(); this.render();
+            },
+
+            resumeGame() { this.showHUD(); this.startTimer(); this.render(); },
+            showHUD() { document.getElementById('hud-top').style.display = 'flex'; },
+
+            render() {
+                const s = DATABASE.stages[this.state.stage];
+                const m = s.missions[this.state.mission];
+                if(this.state.subStep === "before") {
+                    this.renderStory(m.narrationBefore, m.imgBefore, () => {
+                        this.state.subStep = "solving"; this.save(); this.render();
+                    });
+                } else if(this.state.subStep === "solving") {
+                    this.renderQuiz(m);
+                } else if(this.state.subStep === "solved") {
+                    this.renderStory(m.narrationSolved, m.imgSolved, () => { this.next(); });
+                }
+            },
+
+            renderStory(text, bg, callback) {
+                const screen = document.getElementById('screen-story');
+                screen.style.backgroundImage = `url(${bg})`;
+                document.getElementById('story-text').innerText = text;
+                document.getElementById('story-next-btn').onclick = callback;
+                this.showScreen('screen-story');
+            },
+
+            renderQuiz(m) {
+                const screen = document.getElementById('screen-mission');
+                screen.style.backgroundImage = `url(${m.imgSolving})`;
+                document.getElementById('mission-log').innerText = m.log;
+                document.getElementById('mission-q').innerText = m.q;
+                const cArea = document.getElementById('choice-area');
+                const tArea = document.getElementById('text-area');
+                if(m.type === "choice") {
+                    cArea.style.display = "grid"; tArea.style.display = "none"; cArea.innerHTML = "";
+                    m.opts.forEach((o, i) => {
+                        const b = document.createElement('button');
+                        b.className = "option-btn"; b.innerText = `${i+1}. ${o}`;
+                        b.onclick = () => this.handleAnswer(i === m.ans, b);
+                        cArea.appendChild(b);
+                    });
+                } else {
+                    cArea.style.display = "none"; tArea.style.display = "flex";
+                    document.getElementById('mission-input').value = "";
+                }
+                this.updateProgress(); this.save(); this.showScreen('screen-mission');
+            },
+
+            handleAnswer(isCorrect, btn) {
+                if(isCorrect) {
+                    if(btn) btn.classList.add('correct');
+                    setTimeout(() => { this.state.subStep = "solved"; this.save(); this.render(); }, 600);
+                } else {
+                    if(btn) btn.classList.add('wrong');
+                    this.triggerHardcoreReset();
+                }
+            },
+
+            checkTextAnswer() {
+                const input = document.getElementById('mission-input');
+                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
+                const val = input.value.trim().replace(/\s/g, "").toLowerCase();
+                const target = m.ans.replace(/\s/g, "").toLowerCase();
+                if(val === target) {
+                    input.style.borderColor = "#00E676"; this.handleAnswer(true);
+                } else {
+                    input.style.borderColor = "#FF4B2B"; this.triggerHardcoreReset();
+                }
+            },
+
+            triggerHardcoreReset() {
+                const overlay = document.getElementById('restart-overlay');
+                overlay.style.display = 'flex';
+                let count = 3;
+                document.getElementById('restart-countdown').innerText = count;
+                const timer = setInterval(() => {
+                    count--;
+                    document.getElementById('restart-countdown').innerText = count;
+                    if(count <= 0) { clearInterval(timer); overlay.style.display = 'none'; this.resetToStart(); }
+                }, 1000);
+            },
+
+            resetToStart() {
+                this.state.stage = 0; this.state.mission = 0; this.state.subStep = "before";
+                this.state.attempts++; this.save(); this.render();
+            },
+
+            next() {
+                const s = DATABASE.stages[this.state.stage];
+                this.state.mission++; this.state.subStep = "before";
+                if(this.state.mission >= s.missions.length) {
+                    this.state.stage++; this.state.mission = 0;
+                    if(this.state.stage >= DATABASE.stages.length) return this.end();
+                }
+                this.save(); this.render();
+            },
+
+            showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            },
+
+            startTimer() {
+                if(this.timer) clearInterval(this.timer);
+                this.timer = setInterval(() => {
+                    const diff = Date.now() - this.state.startTime;
+                    const min = Math.floor(diff / 60000);
+                    const sec = Math.floor((diff % 60000) / 1000);
+                    document.getElementById('hud-timer').innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                }, 1000);
+            },
+
+            showHint() {
+                const m = DATABASE.stages[this.state.stage].missions[this.state.mission];
+                document.getElementById('hint-text').innerText = m.hint;
+                document.getElementById('modal-hint').style.display = "flex";
+                this.state.hints++; this.save();
+            },
+
+            closeModal() { document.getElementById('modal-hint').style.display = "none"; },
+
+            updateProgress() {
+                const totalMissions = 10;
+                let done = 0;
+                for(let i=0; i<this.state.stage; i++) done += DATABASE.stages[i].missions.length;
+                done += this.state.mission;
+                const pct = Math.floor((done / totalMissions) * 100);
+                document.getElementById('progress-val').innerText = pct;
+                document.getElementById('hud-progress-bar').style.width = pct + "%";
+            },
+
+            save() { localStorage.setItem('Dogi_save_hardcore', JSON.stringify(this.state)); },
+
+            end() {
+                clearInterval(this.timer); localStorage.removeItem('Dogi_save_hardcore');
+                document.getElementById('hud-top').style.display = "none";
+                const diff = Date.now() - this.state.startTime;
+                const min = Math.floor(diff / 60000); const sec = Math.floor((diff % 60000) / 1000);
+                document.getElementById('res-nick').innerText = this.state.nick;
+                document.getElementById('res-time').innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                document.getElementById('res-hints').innerText = this.state.hints;
+                document.getElementById('res-attempts').innerText = this.state.attempts;
+                this.showScreen('screen-ending');
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>
