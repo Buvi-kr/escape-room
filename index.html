@@ -874,8 +874,13 @@
 /* ═══════════════════════════════════════════════
    DATABASE
 ═══════════════════════════════════════════════ */
-const DB = {stages:[
-  {name:"INTRO · 로비",missions:[
+const DB = {
+  prologue: {
+    text: "🚨 긴급 상황! 강력한 태양풍이 지구를 향해 접근 중이야!\n\n포천 아트밸리 천문과학관의 '오메가 방어 시스템'을 가동해야 해. 하지만 시스템 코드가 전시실 곳곳에 흩어져 버렸어. 도기 탐정, 우리와 함께 9개의 미션을 해결하고 지구를 지켜줘!",
+    img: "assets/prologue_alert.webp"
+  },
+  stages:[
+    {name:"INTRO · 로비",missions:[
     {id:1,type:"text",
      q:"ISS는 하루에 우리 지구를 몇 번 돌까요?\n(소수점 포함 숫자 · 예: 00.00)",
      ans:"15.78",
@@ -1308,6 +1313,10 @@ const Game = (()=>{
 
   /* ── render ── */
   function render(){
+    if(S.step === 'prologue') {
+      showStory(DB.prologue.text, DB.prologue.img, () => { S.step = 'before'; save(); render(); });
+      return;
+    }
     const m = ms();
     if(S.step === 'before')      showStory(m.storyBefore, m.imgBefore, ()=>{ S.step='quiz'; save(); render(); });
     else if(S.step === 'quiz')   showQuiz(m);
@@ -1360,7 +1369,7 @@ const Game = (()=>{
         const nick = document.getElementById('nick').value.trim();
         if(!nick){ document.getElementById('nick').focus(); return; }
         Sfx.tap();
-        S = {nick, si:0, mi:0, step:'before', t0:Date.now(), hints:0, attempts:1};
+        S = {nick, si:0, mi:0, step:'prologue', t0:Date.now(), hints:0, attempts:1};
         save();
         UI.showHUD();
         startTick();
