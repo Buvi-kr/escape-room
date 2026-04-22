@@ -877,7 +877,7 @@
 const DB = {
   prologue: {
     text: "🚨 긴급 상황! 강력한 태양풍이 지구를 향해 접근 중이야!\n\n포천 아트밸리 천문과학관의 '오메가 방어 시스템'을 가동해야 해. 하지만 시스템 코드가 전시실 곳곳에 흩어져 버렸어. 도기 탐정, 우리와 함께 9개의 미션을 해결하고 지구를 지켜줘!",
-    img: "assets/prologue_alert.webp"
+    img: "assets/intro_bg.webp"
   },
   stages:[
     {name:"INTRO · 로비",missions:[
@@ -1154,6 +1154,16 @@ const Game = (()=>{
     setMonitorGlow(monitor, S.si);
     document.getElementById('story-stage').textContent = DB.stages[S.si].name;
 
+    // 대사 및 캐릭터 이름에 닉네임 반영
+    let finalMsg = text;
+    if (S && S.nick) {
+      finalMsg = finalMsg.replace(/도기 탐정/g, S.nick + " 탐정");
+      const charNameEl = document.querySelector('.char-name');
+      if (charNameEl) {
+        charNameEl.innerHTML = `🔭 &nbsp;<span style="color:var(--gold); font-weight:900; font-size:1.15em;">${S.nick}</span> 탐정`;
+      }
+    }
+
     const el = document.getElementById('story-text');
     let done = false;
     let cancelType = null;
@@ -1162,7 +1172,7 @@ const Game = (()=>{
       if(!done){
         // Skip typewriter — show full text instantly
         if(cancelType) cancelType();
-        el.textContent = text;
+        el.textContent = finalMsg;
         done = true;
       } else {
         cb();
@@ -1174,7 +1184,7 @@ const Game = (()=>{
     const layout = document.getElementById('story-layout');
     layout.onclick = proceed;
 
-    cancelType = typewrite(el, text, 28, ()=>{ done = true; });
+    cancelType = typewrite(el, finalMsg, 28, ()=>{ done = true; });
     UI.show('screen-story');
     Sfx.tap();
   }
