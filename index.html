@@ -772,7 +772,7 @@
       <input class="field" id="nick" type="text" placeholder="도기 탐정의 코드명" maxlength="10" autocomplete="off">
       <button class="btn btn-primary" id="btn-start">▶ 작전 개시</button>
       <p style="text-align:center;font-size:11px;opacity:.38;margin-top:12px;line-height:1.6">
-        오답 시 처음부터 재시작 &nbsp;·&nbsp; 진행 자동 저장
+        오답 시 해당 구역부터 재시작 &nbsp;·&nbsp; 진행 자동 저장
       </p>
     </div>
   </div>
@@ -801,7 +801,7 @@
           <span class="m-badge" id="m-badge">M01</span>
           <span class="m-title" id="m-title"></span>
         </div>
-        <div class="hc-strip">⚡ 오답 시 처음부터 재시작</div>
+        <div class="hc-strip">⚡ 오답 시 해당 구역 처음부터 재시작</div>
         <div class="q-card">
           <div id="mission-q"></div>
         </div>
@@ -849,7 +849,7 @@
   <div id="ov-restart" class="overlay">
     <div class="icon">⚠️</div>
     <div class="title">시스템 오류!</div>
-    <div class="sub">보안 규정: 처음부터 재시작합니다</div>
+    <div class="sub">보안 규정: 해당 구역을 재시작합니다</div>
     <div id="restart-count">3</div>
   </div>
 
@@ -882,9 +882,9 @@ const DB = {
   stages:[
     {name:"INTRO · 로비",missions:[
     {id:1,type:"text",
-     q:"ISS는 하루에 우리 지구를 몇 번 돌까요?\n(소수점 포함 숫자 · 예: 00.00)",
-     ans:"15.78",
-     guide:"로비 보안 패널에 적혀있는 숫자를 찾아봐!",
+     q:"국제 우주정거장은 어떤 영어 약자일까요?",
+     ans:"ISS",
+     guide:"로비 보안 패널에 적혀있는 약자를 찾아봐!",
      log:"시스템 로그인 · ISS 동기화",
      imgBefore:"assets/intro_bg.webp",imgSolving:"assets/lobby_iss.webp",imgSolved:"assets/pouri_intro.webp",
      storyBefore:"긴급 상황! 강력한 태양풍이 관측됐어. 지구 방어막 '오메가 베리어'를 켜야 해! 우선 ISS 데이터를 동기화하자.",
@@ -1299,8 +1299,8 @@ const Game = (()=>{
       if(n <= 0){
         clearInterval(t);
         UI.closeOv('ov-restart');
-        S.si = 0; S.mi = 0; S.step = 'before'; S.attempts++;
-        UI.setProgress(0, TOTAL);
+        S.mi = 0; S.step = 'before'; S.attempts++;
+        UI.setProgress(totalDone(), TOTAL);
         save();
         render();
       }
