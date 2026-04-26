@@ -485,54 +485,6 @@
       margin-top: 1px;
     }
 
-    /* system HUD inside monitor (fallback) */
-    .sys-hud {
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 16px;
-      text-align: center;
-    }
-    .sys-hud .sys-stage {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: .2em;
-      color: var(--primary);
-      text-transform: uppercase;
-      opacity: 0.7;
-    }
-    .sys-hud .sys-mission {
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      background: linear-gradient(135deg, #fff, var(--primary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .sys-hud .sys-bar-wrap {
-      width: 70%;
-      height: 4px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .sys-hud .sys-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--gold));
-      border-radius: 2px;
-      transition: width 0.6s var(--ease);
-    }
-    .sys-hud .sys-status {
-      font-size: 10px;
-      font-weight: 600;
-      color: rgba(0,242,254,0.5);
-      letter-spacing: .1em;
-      animation: blink 2s infinite;
-    }
 
     .mission-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 
@@ -1193,13 +1145,7 @@ const Game = (()=>{
   function showQuiz(mission){
     const monitor = document.getElementById('mission-monitor');
     /* System HUD fallback or image */
-    const pct = Math.floor(totalDone()/TOTAL*100);
-    monitor.innerHTML = `<div class="sys-hud">
-      <div class="sys-stage">${DB.stages[S.si].name}</div>
-      <div class="sys-mission">M${String(mission.id).padStart(2,'0')}</div>
-      <div class="sys-bar-wrap"><div class="sys-bar" style="width:${pct}%"></div></div>
-      <div class="sys-status">▶ SYSTEM ACTIVE</div>
-    </div>`;
+    monitor.innerHTML = '';
     setBg(monitor, mission.imgSolving, S.si);
     setMonitorGlow(monitor, S.si);
 
