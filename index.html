@@ -1303,13 +1303,6 @@ const Game = (()=>{
     if(correct){
       if(btn) btn.classList.add('correct');
       Sfx.correct();
-      /* ripple effect */
-      if(btn){
-        const r = document.createElement('div');
-        r.style.cssText = 'position:absolute;width:80px;height:80px;border-radius:50%;background:var(--success);pointer-events:none;animation:ripple .6s ease-out forwards;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:.5;';
-        btn.appendChild(r);
-        setTimeout(()=>r.remove(), 700);
-      }
       setTimeout(()=>{ S.step='solved'; save(); render(); }, 700);
     } else {
       if(btn) btn.classList.add('wrong');
