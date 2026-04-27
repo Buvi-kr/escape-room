@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>도기탐정: 태양풍 방어</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     /* ── TOKENS ─────────────────────────────────── */
     :root {
@@ -526,6 +528,13 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .end-mascot {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+      margin: 10px 0;
+    }
     .end-title {
       font-size: 26px;
       font-weight: 800;
@@ -536,6 +545,54 @@
       color: rgba(255,255,255,.55);
       text-align: center;
     }
+    
+    /* ── CERTIFICATE CARD ────────────────────────── */
+    .cert-card {
+      background: #fff;
+      border: 10px solid var(--gold);
+      border-radius: 32px;
+      padding: 30px 20px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #333;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .cert-logo { width: 180px; margin-bottom: 10px; }
+    .cert-badge {
+      background: #a67c00;
+      color: #fff;
+      padding: 8px 24px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 1.1rem;
+      transform: rotate(-1deg);
+      margin: 10px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .cert-nick-wrap { margin-bottom: 5px; text-align: center; }
+    .cert-nick { font-size: 2.2rem; font-weight: 800; color: #000; display: block; }
+    .cert-sub { font-size: 14px; color: #666; font-weight: 600; }
+    
+    .cert-stats-row {
+      display: flex; gap: 10px; width: 100%; margin: 10px 0;
+    }
+    .c-stat-box {
+      flex: 1; background: #f4f7f9; border-radius: 14px; padding: 12px; text-align: center;
+    }
+    .c-stat-lbl { font-size: 9px; color: #99a; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    .c-stat-val { font-size: 18px; font-weight: 800; color: #2c3e50; }
+    
+    .cert-msg { font-size: 13px; color: #555; text-align: center; line-height: 1.5; font-weight: 500; margin: 5px 0; }
+    .cert-date { font-size: 12px; color: #bbb; font-weight: 600; margin-top: 5px; font-family: 'Outfit'; }
+    
+    .end-mascot-cert {
+      width: 150px; height: 150px; object-fit: contain; margin-top: 5px;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -562,12 +619,6 @@
       font-size: 22px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-    }
-    #grade-msg {
-      font-size: 13px;
-      color: rgba(255,255,255,.5);
-      text-align: center;
-      line-height: 1.6;
     }
 
     /* ── OVERLAYS ────────────────────────────────── */
@@ -716,7 +767,7 @@
   <div id="screen-intro" class="screen">
     <div class="intro-hero">
       <div class="badge">포천 아트밸리 천문과학관</div>
-      <div class="logo-title">DOGI</div>
+      <div class="logo-title">DOGGY</div>
       <div class="logo-sub">SOLAR WIND DEFENSE</div>
       <p class="intro-desc">강력한 태양풍이 지구를 향해 오고 있다<br>전시관을 탐험하며 10개의 임무를 완수하라</p>
     </div>
@@ -773,28 +824,37 @@
   </div>
 
   <!-- ════════ ENDING ════════ -->
-  <div id="screen-ending" class="screen">
-    <div class="end-eyebrow">MISSION COMPLETE</div>
-    <div class="grade-ring" id="grade-ring">
-      <div class="grade-letter" id="grade-letter">S</div>
-    </div>
-    <div class="end-title">지구 수호 완료!</div>
-    <div class="end-sub">
-      <span id="res-nick" style="color:var(--primary);font-weight:700"></span>
-      &nbsp;탐정님, 임무 완수!
-    </div>
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-lbl">소요 시간</div>
-        <div class="stat-val" id="res-time">--:--</div>
+  <div id="screen-ending" class="screen" style="padding: 24px; align-items: center; justify-content: center; overflow-y: auto;">
+    <div id="cert-area" class="cert-card">
+      <img src="assets/logo_cert.webp" alt="Logo" class="cert-logo">
+      <div class="cert-badge">방탈출 성공 인증서</div>
+      
+      <div class="cert-nick-wrap">
+        <span class="cert-nick" id="res-nick"></span>
+        <span class="cert-sub">탐정님, 임무 완수를 축하합니다!</span>
       </div>
-      <div class="stat-box">
-        <div class="stat-lbl">총 시도</div>
-        <div class="stat-val" id="res-attempts">1회</div>
+
+      <div class="cert-stats-row">
+        <div class="c-stat-box">
+          <div class="c-stat-lbl">소요 시간</div>
+          <div class="c-stat-val" id="res-time">--:--</div>
+        </div>
+        <div class="c-stat-box">
+          <div class="c-stat-lbl">총 시도</div>
+          <div class="c-stat-val" id="res-attempts">1회</div>
+        </div>
       </div>
+      
+      <div id="grade-msg" class="cert-msg"></div>
+      
+      <img src="assets/caeti_explorer.webp" alt="Mascot" class="end-mascot-cert">
+      
+      <div id="res-date" class="cert-date"></div>
     </div>
-    <div id="grade-msg"></div>
-    <button class="btn btn-primary" id="btn-restart">↩ 새 임무 시작</button>
+    
+    <div style="width: 100%; max-width: 400px; padding: 20px 0 0; display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-primary" id="btn-save-image">📸 이미지 저장하기</button>
+    </div>
   </div>
 
   <!-- ════════ OVERLAY: restart ════════ -->
@@ -1072,7 +1132,7 @@ const UI = {
    GAME
 ═══════════════════════════════════════════════ */
 const Game = (()=>{
-  const KEY   = 'dogi_v3';
+  const KEY   = 'doggy_v3';
   const TOTAL = 10;
   let S, tick, pending;
 
@@ -1290,29 +1350,81 @@ const Game = (()=>{
     let grade, msg, color;
 
     if(mins < 10 && S.attempts === 1){
-      grade='S'; color='#FFD700'; msg='완벽한 수호! 단번에 클리어. 진정한 도기 탐정입니다!';
+      msg='완벽한 수호! 단번에 클리어. 진정한 도기 탐정입니다!';
     } else if(mins < 15 && S.attempts <= 2){
-      grade='A'; color='#00F2FE'; msg='훌륭한 수호! 빠르고 정확하게 임무를 완수했습니다.';
+      msg='훌륭한 수호! 빠르고 정확하게 임무를 완수했습니다.';
     } else if(mins < 25 && S.attempts <= 4){
-      grade='B'; color='#00E676'; msg='성공적인 수호! 지구는 안전합니다. 다음엔 더 빠르게!';
+      msg='성공적인 수호! 지구는 안전합니다. 다음엔 더 빠르게!';
     } else {
-      grade='C'; color='#FF9800'; msg='임무 완수! 포기하지 않는 탐정 정신이 지구를 구했습니다.';
+      msg='임무 완수! 포기하지 않는 탐정 정신이 지구를 구했습니다.';
     }
-
-    const ring = document.getElementById('grade-ring');
-    const gl   = document.getElementById('grade-letter');
-    ring.style.borderColor = color;
-    ring.style.boxShadow = `0 0 40px ${color}44, inset 0 0 40px ${color}11`;
-    gl.textContent = grade;
-    gl.style.backgroundImage = `linear-gradient(135deg,#fff,${color})`;
 
     document.getElementById('res-nick').textContent = S.nick;
     document.getElementById('res-time').textContent = fmtTime(elapsed_ms);
     document.getElementById('res-attempts').textContent = S.attempts + '회';
     document.getElementById('grade-msg').textContent = msg;
+    
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('res-date').textContent = dateStr;
 
     UI.show('screen-ending');
+    fireConfetti();
     Sfx.fanfare();
+  }
+
+  function fireConfetti() {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) return clearInterval(interval);
+
+      const particleCount = 50 * (timeLeft / duration);
+      confetti(Object.assign({}, defaults, { 
+        particleCount, 
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#00F2FE', '#FFD700']
+      }));
+      confetti(Object.assign({}, defaults, { 
+        particleCount, 
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#00F2FE', '#FFD700']
+      }));
+    }, 250);
+  }
+
+  async function saveCertificate() {
+    const area = document.getElementById('cert-area');
+    const name = S.nick || 'Explorer';
+    const btnSave = document.getElementById('btn-save-image');
+    const btnRestart = document.getElementById('btn-restart');
+    
+    btnSave.style.display = 'none';
+    btnRestart.style.display = 'none';
+
+    try {
+      const canvas = await html2canvas(area, { 
+        scale: 2, 
+        useCORS: true,
+        backgroundColor: '#060616'
+      });
+      const link = document.createElement('a');
+      link.download = `Doggy_Detective_${name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (e) {
+      alert("이미지 저장 중 오류가 발생했습니다.");
+    } finally {
+      btnSave.style.display = 'block';
+      btnRestart.style.display = 'block';
+    }
   }
 
   /* ── public ── */
@@ -1346,8 +1458,8 @@ const Game = (()=>{
         if(pending){ const p=pending; pending=null; p.onCancel(); }
       });
 
-      /* restart */
-      document.getElementById('btn-restart').addEventListener('click', ()=>location.reload());
+      /* save image */
+      document.getElementById('btn-save-image').addEventListener('click', saveCertificate);
 
       /* resume save? */
       const raw = localStorage.getItem(KEY);
