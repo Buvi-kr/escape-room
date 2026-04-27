@@ -70,7 +70,7 @@
       z-index: 1;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.6s var(--ease);
+      transition: opacity 0.4s var(--ease);
     }
     #full-bg::after {
       content: '';
@@ -91,7 +91,7 @@
       z-index: 5;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.25s var(--ease);
+      transition: opacity 0.4s var(--ease);
     }
     .screen.active {
       opacity: 1;
@@ -293,9 +293,9 @@
       background-size: cover;
       background-position: center;
       box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-      transition: background-image 0.5s var(--ease),
-                  box-shadow 0.6s var(--ease),
-                  border-color 0.6s var(--ease);
+      transition: background-image 0.4s var(--ease),
+                  box-shadow 0.4s var(--ease),
+                  border-color 0.4s var(--ease);
       position: relative;
       overflow: hidden;
     }
@@ -1109,11 +1109,31 @@ function typewrite(el, text, speed, doneCb){
 ═══════════════════════════════════════════════ */
 const UI = {
   show(id){
-    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const screens = document.querySelectorAll('.screen');
+    const old = document.querySelector('.screen.active');
+    const next = document.getElementById(id);
+    if(old === next) return;
+
+    // baseline z-index
+    screens.forEach(s => s.style.zIndex = '5');
+    
+    // new screen on top
+    next.style.zIndex = '6';
+    next.classList.add('active');
+
     // Full-bg only for intro & ending
     const fbg = document.getElementById('full-bg');
     if(fbg) fbg.style.opacity = (id==='screen-intro' || id==='screen-ending') ? '1' : '0';
+
+    if(old) {
+      // Keep old screen until new one is fully visible to avoid black flash
+      setTimeout(() => {
+        if (old !== next) {
+          old.classList.remove('active');
+          old.style.zIndex = '5';
+        }
+      }, 400); 
+    }
   },
   openOv(id) { document.getElementById(id).classList.add('open'); },
   closeOv(id){ document.getElementById(id).classList.remove('open'); },
