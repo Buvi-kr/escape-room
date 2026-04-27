@@ -91,7 +91,7 @@
       z-index: 5;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.4s var(--ease);
+      transition: opacity 0.25s var(--ease);
     }
     .screen.active {
       opacity: 1;
@@ -1074,10 +1074,8 @@ function setBg(el, url, si){
   if(!el) return;
   const sc = STAGE_COLORS[si] || STAGE_COLORS[0];
   if(!url){ el.style.backgroundImage = sc.fallback; return; }
-  const img = new Image();
-  img.onload  = ()=>{ el.style.backgroundImage = `url(${url})`; };
-  img.onerror = ()=>{ el.style.backgroundImage = sc.fallback; };
-  img.src = url;
+  // Set immediately to trigger CSS background-image transition without waiting for onload
+  el.style.backgroundImage = `url(${url})`;
 }
 
 function setMonitorGlow(el, si){
@@ -1182,7 +1180,6 @@ const Game = (()=>{
 
     function proceed(){
       if(!done){
-        // Skip typewriter — show full text instantly
         if(cancelType) cancelType();
         el.textContent = finalMsg;
         done = true;
@@ -1191,12 +1188,14 @@ const Game = (()=>{
       }
     }
 
-    // Attach click handler to the ENTIRE story layout (not the screen)
-    // This ensures clicks pass through correctly
     const layout = document.getElementById('story-layout');
     layout.onclick = proceed;
 
-    cancelType = typewrite(el, finalMsg, 28, ()=>{ done = true; });
+    // Start typewriter with a small delay so user sees the image change first
+    setTimeout(() => {
+      cancelType = typewrite(el, finalMsg, 28, ()=>{ done = true; });
+    }, 150);
+
     UI.show('screen-story');
     Sfx.tap();
   }
@@ -1262,7 +1261,11 @@ const Game = (()=>{
 
     UI.setProgress(totalDone(), TOTAL);
     save();
-    UI.show('screen-mission');
+
+    // Small delay before showing screen to let image transition start
+    setTimeout(() => {
+      UI.show('screen-mission');
+    }, 50);
   }
 
   /* ── confirm overlay ── */
@@ -1427,10 +1430,32 @@ const Game = (()=>{
     }
   }
 
+  function preloadImages() {
+    const urls = new Set();
+    urls.add(DB.prologue.img);
+    DB.stages.forEach(s => {
+      s.missions.forEach(m => {
+        if (m.imgBefore) urls.add(m.imgBefore);
+        if (m.imgSolving) urls.add(m.imgSolving);
+        if (m.imgSolved) urls.add(m.imgSolved);
+      });
+    });
+    // Ending assets
+    urls.add('assets/logo_cert.webp');
+    urls.add('assets/caeti_explorer.webp');
+
+    urls.forEach(u => {
+      const img = new Image();
+      img.src = u;
+    });
+    console.log(`Preloading ${urls.size} assets...`);
+  }
+
   /* ── public ── */
   return {
     init(){
       Starfield.init();
+      preloadImages();
 
       /* start button */
       document.getElementById('btn-start').addEventListener('click', () => {
