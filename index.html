@@ -786,7 +786,7 @@
       <input class="field" id="nick" type="text" placeholder="도기 탐정의 코드명" maxlength="10" autocomplete="off">
       <button class="btn btn-primary" id="btn-start">▶ 작전 개시</button>
       <p style="text-align:center;font-size:11px;opacity:.38;margin-top:12px;line-height:1.6">
-        오답 시 해당 구역부터 재시작 &nbsp;·&nbsp; 진행 자동 저장
+        오답 시 해당 구역부터 다시 시작 &nbsp;·&nbsp; 진행 자동 저장
       </p>
     </div>
   </div>
@@ -1449,35 +1449,38 @@ const Game = (()=>{
 
   async function saveCertificate() {
     const area = document.getElementById('cert-area');
-    const name = document.getElementById('res-nick').textContent || 'Explorer';
+    const resNick = document.getElementById('res-nick');
+    const name = (resNick ? resNick.textContent : 'Explorer') || 'Explorer';
     const btnSave = document.getElementById('btn-save-image');
     
+    if (!area || !btnSave) return;
+
     const originalText = btnSave.innerText;
     btnSave.innerText = "⏳ 이미지 저장 중...";
     btnSave.disabled = true;
-    
-    // 버튼 숨기기 (캡처 범위 밖이지만 안전을 위해)
-    btnSave.style.opacity = '0';
+    btnSave.style.opacity = '0.5'; // 버튼이 사진에 방해되지 않도록 투명도 조절
 
     try {
       const canvas = await html2canvas(area, { 
         scale: 2, 
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        logging: false // 불필요한 로그 제거
       });
       const link = document.createElement('a');
       link.download = `Doggy_Detective_${name}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (e) {
-      console.error(e);
-      alert("이미지 저장 중 오류가 발생했습니다.");
+      console.error("Save Error:", e);
+      alert("이미지 저장 중 오류가 발생했습니다. 브라우저 설정을 확인해 주세요.");
     } finally {
       btnSave.innerText = originalText;
       btnSave.disabled = false;
       btnSave.style.opacity = '1';
     }
   }
+
 
 
   function preloadImages() {
