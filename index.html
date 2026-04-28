@@ -547,51 +547,59 @@
     }
     
     /* ── CERTIFICATE CARD ────────────────────────── */
-    .cert-card {
+    /* ── CERTIFICATE CARD (PREMIUM UPGRADE) ──────────────── */
+    .cert-card-premium {
       background: #fff;
       border: 10px solid var(--gold);
       border-radius: 32px;
-      padding: 30px 20px;
+      padding: 24px 20px;
       width: 100%;
       max-width: 400px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       color: #333;
       box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      position: relative;
     }
-    .cert-logo { width: 180px; margin-bottom: 10px; }
-    .cert-badge {
+    .cert-logo-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 2px; }
+    .cert-logo { width: 140px; height: auto; }
+    
+    .cert-badge-premium {
       background: #a67c00;
       color: #fff;
-      padding: 8px 24px;
-      border-radius: 4px;
+      padding: 6px 20px;
+      border-radius: 6px;
       font-weight: 800;
-      font-size: 1.1rem;
-      transform: rotate(-1deg);
-      margin: 10px 0;
+      font-size: 1.05rem;
+      margin: 8px 0;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .cert-nick-wrap { margin-bottom: 5px; text-align: center; }
-    .cert-nick { font-size: 2.2rem; font-weight: 800; color: #000; display: block; }
-    .cert-sub { font-size: 14px; color: #666; font-weight: 600; }
     
-    .cert-stats-row {
-      display: flex; gap: 10px; width: 100%; margin: 10px 0;
-    }
+    .cert-nick-wrap { text-align: center; margin-bottom: 5px; }
+    .cert-nick { font-size: 2.4rem; font-weight: 800; color: #000; line-height: 1.1; margin-bottom: 4px; }
+    .cert-sub { font-size: 13px; color: #666; font-weight: 600; }
+    
+    .cert-stats-row { display: flex; gap: 10px; width: 100%; margin: 8px 0; }
     .c-stat-box {
-      flex: 1; background: #f4f7f9; border-radius: 14px; padding: 12px; text-align: center;
+      flex: 1; background: #f4f7f9; border-radius: 14px; padding: 10px; text-align: center;
+      display: flex; flex-direction: column; gap: 2px;
     }
-    .c-stat-lbl { font-size: 9px; color: #99a; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
-    .c-stat-val { font-size: 18px; font-weight: 800; color: #2c3e50; }
+    .c-stat-lbl { font-size: 9px; color: #99a; font-weight: 700; text-transform: uppercase; }
+    .c-stat-val { font-size: 17px; font-weight: 800; color: #2c3e50; }
     
-    .cert-msg { font-size: 13px; color: #555; text-align: center; line-height: 1.5; font-weight: 500; margin: 5px 0; }
-    .cert-date { font-size: 12px; color: #bbb; font-weight: 600; margin-top: 5px; font-family: 'Outfit'; }
+    .cert-msg { 
+      font-size: 14px; color: #444; text-align: center; line-height: 1.5; 
+      font-weight: 600; margin: 5px 0; padding: 0 10px; word-break: keep-all;
+    }
     
     .end-mascot-cert {
-      width: 150px; height: 150px; object-fit: contain; margin-top: 5px;
+      width: 130px; height: 130px; object-fit: contain; margin-top: 5px;
     }
+    
+    .cert-date { font-size: 12px; color: #bbb; font-weight: 600; margin-top: 5px; font-family: 'Outfit'; }
+
 
     .stats-grid {
       display: grid;
@@ -825,13 +833,15 @@
 
   <!-- ════════ ENDING ════════ -->
   <div id="screen-ending" class="screen" style="padding: 24px; align-items: center; justify-content: center; overflow-y: auto;">
-    <div id="cert-area" class="cert-card">
-      <img src="assets/logo_cert.webp" alt="Logo" class="cert-logo">
-      <div class="cert-badge">방탈출 성공 인증서</div>
+    <div id="cert-area" class="cert-card-premium">
+      <div class="cert-logo-wrap">
+        <img src="assets/logo_cert.webp" alt="Logo" class="cert-logo">
+      </div>
+      <div class="cert-badge-premium">방탈출 성공 인증서</div>
       
       <div class="cert-nick-wrap">
-        <span class="cert-nick" id="res-nick"></span>
-        <span class="cert-sub">탐정님, 임무 완수를 축하합니다!</span>
+        <div class="cert-nick" id="res-nick"></div>
+        <div class="cert-sub">지구를 구한 자랑스러운 탐정님!</div>
       </div>
 
       <div class="cert-stats-row">
@@ -854,8 +864,10 @@
     
     <div style="width: 100%; max-width: 400px; padding: 20px 0 0; display: flex; flex-direction: column; gap: 10px;">
       <button class="btn btn-primary" id="btn-save-image">📸 이미지 저장하기</button>
+      <button class="btn btn-ghost" onclick="location.reload()">🔄 다시 도전하기</button>
     </div>
   </div>
+
 
   <!-- ════════ OVERLAY: restart ════════ -->
   <div id="ov-restart" class="overlay">
@@ -1363,7 +1375,7 @@ const Game = (()=>{
 
     const elapsed_ms = elapsed();
     const mins = Math.floor(elapsed_ms / 60000);
-    let grade, msg, color;
+    let msg;
 
     if(mins < 10 && S.attempts === 1){
       msg='완벽한 수호! 단번에 클리어. 진정한 도기 탐정입니다!';
@@ -1375,19 +1387,36 @@ const Game = (()=>{
       msg='임무 완수! 포기하지 않는 탐정 정신이 지구를 구했습니다.';
     }
 
-    document.getElementById('res-nick').textContent = S.nick;
-    document.getElementById('res-time').textContent = fmtTime(elapsed_ms);
-    document.getElementById('res-attempts').textContent = S.attempts + '회';
-    document.getElementById('grade-msg').textContent = msg;
-    
     const now = new Date();
     const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    document.getElementById('res-date').textContent = dateStr;
+    
+    // 결과 데이터 구성
+    const resultData = {
+      nick: S.nick,
+      time: fmtTime(elapsed_ms),
+      attempts: S.attempts + '회',
+      msg: msg,
+      date: dateStr
+    };
 
+    // 로컬 스토리지에 클리어 정보 저장
+    localStorage.setItem(KEY + '_cleared', '1');
+    localStorage.setItem(KEY + '_result', JSON.stringify(resultData));
+
+    renderResult(resultData);
     UI.show('screen-ending');
     fireConfetti();
     Sfx.fanfare();
   }
+
+  function renderResult(data) {
+    document.getElementById('res-nick').textContent = data.nick;
+    document.getElementById('res-time').textContent = data.time;
+    document.getElementById('res-attempts').textContent = data.attempts;
+    document.getElementById('grade-msg').textContent = data.msg;
+    document.getElementById('res-date').textContent = data.date;
+  }
+
 
   function fireConfetti() {
     const duration = 3 * 1000;
@@ -1418,30 +1447,36 @@ const Game = (()=>{
 
   async function saveCertificate() {
     const area = document.getElementById('cert-area');
-    const name = S.nick || 'Explorer';
+    const name = document.getElementById('res-nick').textContent || 'Explorer';
     const btnSave = document.getElementById('btn-save-image');
-    const btnRestart = document.getElementById('btn-restart');
     
-    btnSave.style.display = 'none';
-    btnRestart.style.display = 'none';
+    const originalText = btnSave.innerText;
+    btnSave.innerText = "⏳ 이미지 저장 중...";
+    btnSave.disabled = true;
+    
+    // 버튼 숨기기 (캡처 범위 밖이지만 안전을 위해)
+    btnSave.style.opacity = '0';
 
     try {
       const canvas = await html2canvas(area, { 
         scale: 2, 
         useCORS: true,
-        backgroundColor: '#060616'
+        backgroundColor: '#ffffff'
       });
       const link = document.createElement('a');
       link.download = `Doggy_Detective_${name}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (e) {
+      console.error(e);
       alert("이미지 저장 중 오류가 발생했습니다.");
     } finally {
-      btnSave.style.display = 'block';
-      btnRestart.style.display = 'block';
+      btnSave.innerText = originalText;
+      btnSave.disabled = false;
+      btnSave.style.opacity = '1';
     }
   }
+
 
   function preloadImages() {
     const urls = new Set();
@@ -1499,6 +1534,18 @@ const Game = (()=>{
       /* save image */
       document.getElementById('btn-save-image').addEventListener('click', saveCertificate);
 
+      // 클리어 기록 확인 (결과 화면 바로 가기)
+      const cleared = localStorage.getItem(KEY + '_cleared');
+      const resultRaw = localStorage.getItem(KEY + '_result');
+      if (cleared && resultRaw) {
+        try {
+          const res = JSON.parse(resultRaw);
+          renderResult(res);
+          UI.show('screen-ending');
+          return;
+        } catch(e) { console.error("Result load fail", e); }
+      }
+
       /* resume save? */
       const raw = localStorage.getItem(KEY);
       if(raw){
@@ -1517,6 +1564,7 @@ const Game = (()=>{
       // No save — show intro
       UI.show('screen-intro');
     }
+
   };
 })();
 
